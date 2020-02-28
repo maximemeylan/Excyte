@@ -1,5 +1,6 @@
 #' @import ggplot2
 #' @import ggridges
+#' @export
 
 plot_ridge <- function(pheno_obj){
   processed_fcs <- pheno_obj$processed_fcs

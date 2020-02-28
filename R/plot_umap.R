@@ -1,6 +1,7 @@
 #' @import ggplot2
 #' @importFrom stats quantile
 #' @importFrom RColorBrewer brewer.pal
+#' @export
 plot_umap <- function(umap_2D,processed_fcs_df,channels=c("channels_used","all","with_desc")[1],cut_top_99th=T,alpha=0.5){
   processed_fcs<- query_extract(processed_fcs_df,channels=channels)
   all_channels <- attr(processed_fcs,"all_channels")

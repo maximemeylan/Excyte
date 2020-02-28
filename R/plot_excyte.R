@@ -1,4 +1,4 @@
-
+#' @export
 plot_excyte <- function(excyte_obj,cut_top_99th=T,show_perc=T,alpha=0.5){
   #generate umaps for selected channels and save plots in a list
   umap_channels <- plot_umap(umap_2D = excyte_obj$umap_obj$umap_2D,

@@ -1,5 +1,6 @@
 #' @import umap
 #' @importFrom stats setNames
+#' @export
 
 compute_umap <- function(processed_fcs_obj,channels=c("all","with_desc")[1],samples="all",k=30){
   processed_fcs<- query_extract(processed_fcs_obj,channels=channels)

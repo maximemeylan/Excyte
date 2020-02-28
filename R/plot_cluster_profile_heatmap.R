@@ -1,6 +1,8 @@
 #' @import pheatmap
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom grDevices colorRampPalette
+#' @export
+#'
 plot_cluster_profile_heatmap <- function(pheno_obj,
                                          palette="default",
                                          channels_order=NULL,

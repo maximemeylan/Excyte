@@ -1,6 +1,7 @@
 #' @import ggplot2
 #' @importFrom stats quantile
 #' @importFrom ggrepel geom_text_repel
+#' @export
 
 plot_phenograph <- function(umap_2D,phenograph_obj,alpha=0.5){
   memberships <- factor(phenograph_obj$phenograph[[2]]$membership)

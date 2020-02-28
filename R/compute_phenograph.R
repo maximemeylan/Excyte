@@ -1,4 +1,5 @@
 #' @import Rphenograph
+#' @export
 
 compute_phenograph <- function(processed_fcs_obj,channels=c("all","with_desc")[1],k=30){
   processed_fcs <- query_extract(processed_fcs_obj,channels=channels)

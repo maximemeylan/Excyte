@@ -1,3 +1,4 @@
+#' @export
 run_excyte <- function(fcs_dir,
                        downsampling=3000,
                        channels="all",

@@ -1,4 +1,4 @@
-
+#' @export
 rerun_excyte <- function(excyte_obj,
                          clusters_id=NA,
                          downsampling=3000,

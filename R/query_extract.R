@@ -1,3 +1,4 @@
+#' @export
 query_extract <- function(processed_fcs_obj,channels=c("all","with_desc")[1]){
   all_channels <- processed_fcs_obj$all_channels
   processed_fcs_df <- processed_fcs_obj$processed_fcs

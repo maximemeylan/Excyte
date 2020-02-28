@@ -3,6 +3,8 @@
 #' @importFrom flowCore fsApply
 #' @importFrom flowCore estimateLogicle
 #' @importFrom flowCore transform
+#' @export
+#'
 
 #Open fcs and put then in a flowset
 pre_process_fcs <- function(fcs_dir,downsampling="none",rescale_all=c(0,4.5)){
