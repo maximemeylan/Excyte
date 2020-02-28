@@ -1,0 +1,30 @@
+Package: excyte
+Title: Exhaustive eXploration of CYTometry data
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Maxime",
+           family = "Meylan",
+           role = c("aut", "cre"),
+           email = "maxime.meylan@crc.jussieu.fr",
+           comment = c(ORCID = "https://orcid.org/0000-0002-6175-1954"))
+Description: This package enable analysis and visualisation of cytometry data.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+biocViews: flowCore
+Depends: R (>= 3.4.0), ggplot2
+Imports:
+        flowCore,
+        RColorBrewer,
+        umap,
+        ggrepel,
+        Rphenograph,
+        reshape2,
+        ggridges,
+        pheatmap,
+        gridExtra
+RoxygenNote: 7.0.2
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
