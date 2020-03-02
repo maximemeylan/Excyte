@@ -13,18 +13,13 @@
 #' @param fcs_dir directory or vector containing fcs files to be used
 #' @param downsampling number of event to randomly select from each fcs, if the number of events request is bigger than the number of event in the  fcs, all event are selected
 #' @param rescale_all vector of two values indicating the range of the values to scale between
-#' @param fs flowset containing loaded fcs objects
-#' @param all_channels dataframe containing channels and channels names
-#' @param shape_marker named vector containing scatter parameters
-#' @param event_for_each_sample list containing extracted events from each fcs
-#' @param processed_fcs_df aggregated dataframe obtained from event_for_each_sample
 #'
 #' @return a list containing the normalized aggregated dataframe and all_channels
 #'
 
 #Open fcs and put then in a flowset
 pre_process_fcs <- function(fcs_dir,downsampling="none",rescale_all=c(0,4.5)){
-  fs <- read.flowSet(path = fcs_dir,transformation = F,emptyValue = F)
+  fs <- read.flowSet(fcs_dir,transformation = F,emptyValue = F)
   #get markers
   all_channels <- pData(parameters(fs[[1]]))[,c(1,2)]
   all_channels <- all_channels[as.vector(all_channels[,1] != "Time" & all_channels[,1] != "Event"),]
@@ -55,4 +50,27 @@ pre_process_fcs <- function(fcs_dir,downsampling="none",rescale_all=c(0,4.5)){
     processed_fcs_df[,all_channels[,1]]<- apply(processed_fcs_df[,all_channels[,1]],2,function(x) norm_range(x,rescale_all))
   }
   return(list("processed_fcs" =processed_fcs_df,"all_channels"=all_channels))
+}
+#' Query an aggregated dataframe to subset requested channels
+#' @param processed_fcs_obj list containing a datraframe of processed intensities for each event and informations of channel used
+#' @param channels vector containing channels to select. Can be "all" to select all channels, "with_desc" to select channels with a marker description or a vector a channels.
+#' @export
+query_extract <- function(processed_fcs_obj,channels=c("all","with_desc")[1]){
+  all_channels <- processed_fcs_obj$all_channels
+  processed_fcs_df <- processed_fcs_obj$processed_fcs
+  #if channels are not specified
+  if (all(channels == "with_desc")) {
+    channels_to_select <- all_channels[!is.na(all_channels[, "desc"]), 1]
+    processed_fcs_df <- processed_fcs_df[, c(channels_to_select, "sample_id")]
+    channels <- colnames(processed_fcs_df)[colnames(processed_fcs_df) != "sample_id"]
+  }
+  if (all(channels != "with_desc") & all(channels != "all")) {
+    processed_fcs_df <- processed_fcs_df[, c(channels, "sample_id")]
+    channels <- colnames(processed_fcs_df)[colnames(processed_fcs_df) != "sample_id"]
+  } else{
+    channels <- all_channels[,1]
+  }
+  processed_fcs_df <- processed_fcs_df[,c(channels,"sample_id")]
+  attr(processed_fcs_df,"all_channels") <- all_channels
+  return(processed_fcs_df)
 }

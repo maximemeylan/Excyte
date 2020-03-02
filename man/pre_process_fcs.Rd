@@ -13,16 +13,6 @@ pre_process_fcs(fcs_dir, downsampling = "none", rescale_all = c(0, 4.5))
 \item{downsampling}{number of event to randomly select from each fcs, if the number of events request is bigger than the number of event in the  fcs, all event are selected}
 
 \item{rescale_all}{vector of two values indicating the range of the values to scale between}
-
-\item{fs}{flowset containing loaded fcs objects}
-
-\item{all_channels}{dataframe containing channels and channels names}
-
-\item{shape_marker}{named vector containing scatter parameters}
-
-\item{event_for_each_sample}{list containing extracted events from each fcs}
-
-\item{processed_fcs_df}{aggregated dataframe obtained from event_for_each_sample}
 }
 \value{
 a list containing the normalized aggregated dataframe and all_channels
