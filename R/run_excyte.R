@@ -11,10 +11,10 @@ run_excyte <- function(fcs_dir,
   #pre-process fcs
   processed_fcs_obj <- pre_process_fcs(fcs_dir = fcs_dir,downsampling = downsampling)
   #compute phenograph membership for each event
-  pheno_obj <- compute_phenograph(processed_fcs_obj,channels = channels,k = k)
+  phenograph_obj <- compute_phenograph(processed_fcs_obj,channels = channels,k = k)
   #compute umap for each event
   umap_obj <- compute_umap(processed_fcs_obj,channels = channels,k=k)
-  return(list("processed_fcs_obj"=processed_fcs_obj,"pheno_obj"=pheno_obj,"umap_obj"=umap_obj))
+  return(list("processed_fcs_obj"=processed_fcs_obj,"phenograph_obj"=phenograph_obj,"umap_obj"=umap_obj))
 }
 #' Rerun the excyte pipeline on selected phenograph clusters
 #' @param excyte_obj list of object obtained from an initial run with the excyte pipeline
@@ -33,13 +33,13 @@ rerun_excyte <- function(excyte_obj,
     stop("Please submit clusters ID")
   }
   message("Excyte re-running with selected clusters: ",paste0(clusters_id," "))
-  event_to_select <- excyte_obj$pheno_obj$processed_fcs$Phenograph_membership %in% clusters_id
+  event_to_select <- excyte_obj$phenograph_obj$processed_fcs$Phenograph_membership %in% clusters_id
   excyte_obj$processed_fcs_obj$processed_fcs <- excyte_obj$processed_fcs_obj$processed_fcs[event_to_select,]
   #compute new phenograph membership for selected events
-  pheno_obj <- compute_phenograph(processed_fcs_obj = excyte_obj$processed_fcs_obj,channels = channels,k = k)
+  phenograph_obj <- compute_phenograph(processed_fcs_obj = excyte_obj$processed_fcs_obj,channels = channels,k = k)
   #compute umap for selected events
   umap_obj <- compute_umap(excyte_obj$processed_fcs_obj,channels = channels,k=k)
-  return(list("processed_fcs_obj"= excyte_obj$processed_fcs_obj,"pheno_obj"=pheno_obj,"umap_obj"=umap_obj))
+  return(list("processed_fcs_obj"= excyte_obj$processed_fcs_obj,"phenograph_obj"=phenograph_obj,"umap_obj"=umap_obj))
 }
 #' Compute phenograph membership for each event
 #' @param processed_fcs_obj list containing a datraframe of processed intensities for each event and informations of channel used

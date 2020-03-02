@@ -17,14 +17,83 @@ knitr::opts_chunk$set(
 ```
 ## Introduction
 
-Excyte is a pipeline that allows exhaustive exploration of cytometry data. Excyte first preprocess compensated fcs data, then performs unsuppervised clustering of selected events with PhenoGraph (Jacob H. Levine et.al; Cell, 2015) and visualization via Umap (Leland McInnes et.al; arXiv:1802.03426). This pipeline outputs proportions of identified clusters for each input sample as well as intuitive visualizations.
+Excyte is a pipeline that allows exhaustive exploration of cytometry data. Excyte first preprocesses compensated fcs data, then performs unsuppervised clustering of selected events with PhenoGraph (Jacob H. Levine et.al; Cell, 2015) and dimensionality reduction via Umap (Leland McInnes et.al; arXiv:1802.03426). This pipeline outputs proportions of identified clusters for each input sample as well as intuitive visualizations.
 
 
-## To get started 
+## Get started 
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+In R, install Excyte via GitHub with the command 
 
-## Styles
+``` 
+library(devtools)
+install_github("maxmeyl/Excyte")
+```
+
+
+## First run 
+
+To run the Excyte pipeline, input the directory containing compensated fcs files. Downsampling can be used to speed up the computation time, here 1000 events of each fcs are randomly sampled. Finally, we will run Excyte on avalaible channels.
+
+
+```{r} 
+library(excyte)
+library(gridExtra)
+
+#load sample data 
+fcs.loc <- system.file("extdata",package="flowCore")
+file.location <- paste(fcs.loc, dir(fcs.loc), sep="/")
+
+excyte_object <- run_excyte(fcs_dir = file.location[1:3],downsampling = 2000,channels = "all")
+```
+## Results of the pipeline
+
+`excyte_object` contains the Umap and clustering results \
+
+`excyte_object$processed_fcs_obj` contains the normalized intensities of each event \
+
+`excyte_object$pheno_obj`contains the output from PhenoGraph clustering \
+
+`excyte_object$excyte_res$umap_obj` contains the ouput from the Umap dimensionality reduction, including the 2D coordinates of each event.\
+
+The percentage of clusters among each samples can be displayed by :
+
+```{r, echo=FALSE, results='asis'}
+knitr::kable(head(excyte_object$phenograph_obj$phenograph_percentage))
+```
+
+## Visualizations 
+
+Excyte propose several visualization than can be computed with the command
+```{r}
+excyte_plots <- plot_excyte(excyte_obj = excyte_object,alpha = 0.7)
+```
+
+The visualizations can be displayed by querying the result object 
+
+Heatmap presenting the average intensity profile of each cluster
+```{r , fig.width = 4,fig.height=4,dpi=100} 
+excyte_plots$heatmap
+```
+
+```{r , fig.width = 8,fig.height=7,dpi=100} 
+grid.arrange(grobs=excyte_plots$umap_channels[1:4],ncol=2)
+```
+
+```{r , fig.width = 8,fig.height=7,dpi=100} 
+grid.arrange(grobs=excyte_plots$ridges[1:4],ncol=2)
+```
+
+## Re-run excyte on selected clusters 
+
+The pipeline can be re-run on a subset of the cluster to better characterize interesting populations 
+
+```{r,fig.width = 8,fig.height=7,dpi=100}
+rerun_object <- rerun_excyte(excyte_obj = excyte_object,clusters_id = c("c21","c3","c9","c11","12"),k=30)
+rerun_plots <- plot_excyte(excyte_obj = rerun_object,alpha = 1)
+grid.arrange(grobs=excyte_plots$umap_channels[1:4],ncol=2)
+
+```
+
 
 The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
 
