@@ -1,9 +1,25 @@
+#' Extract and aggreagte fluorescence intensity matrixx of FCS files.
+#' Perfom logicle transformation and scaling, downsampling if necessary
+#'
 #' @importFrom flowCore read.flowSet
 #' @importFrom flowCore pData
 #' @importFrom flowCore fsApply
 #' @importFrom flowCore estimateLogicle
 #' @importFrom flowCore transform
+#' @importFrom flowCore parameters
+#' @importFrom flowCore exprs
+#' @importFrom flowCore identifier
 #' @export
+#' @param fcs_dir directory or vector containing fcs files to be used
+#' @param downsampling number of event to randomly select from each fcs, if the number of events request is bigger than the number of event in the  fcs, all event are selected
+#' @param rescale_all vector of two values indicating the range of the values to scale between
+#' @param fs flowset containing loaded fcs objects
+#' @param all_channels dataframe containing channels and channels names
+#' @param shape_marker named vector containing scatter parameters
+#' @param event_for_each_sample list containing extracted events from each fcs
+#' @param processed_fcs_df aggregated dataframe obtained from event_for_each_sample
+#'
+#' @return a list containing the normalized aggregated dataframe and all_channels
 #'
 
 #Open fcs and put then in a flowset

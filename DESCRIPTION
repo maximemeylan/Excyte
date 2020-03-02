@@ -13,6 +13,7 @@ Encoding: UTF-8
 LazyData: true
 biocViews: flowCore
 Depends: R (>= 3.4.0), ggplot2
+Remotes: JinmiaoChenLab/Rphenograph
 Imports:
         flowCore,
         RColorBrewer,
