@@ -1,4 +1,4 @@
-#' add global variables to avoid warnings
-#'
+#' @title global variables
+#'  add global variables to avoid warnings
 
 utils::globalVariables(c("X", "Y", "colour","xpos","ypos","cluster_id","value","groups"))

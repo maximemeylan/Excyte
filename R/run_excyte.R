@@ -29,8 +29,8 @@ rerun_excyte <- function(excyte_obj,
                          downsampling=3000,
                          channels="all",
                          k=30){
-  if(is.na(clusters_id)){
-    stop("Please submit clusters ID")
+  if(any(is.na(clusters_id))){
+    stop("Please submit valid clusters ID")
   }
   message("Excyte re-running with selected clusters: ",paste0(clusters_id," "))
   event_to_select <- excyte_obj$phenograph_obj$processed_fcs$Phenograph_membership %in% clusters_id
