@@ -36,7 +36,12 @@ plot_excyte <- function(excyte_obj,cut_top_99th=T,show_perc=T,alpha=0.5){
 #' @importFrom ggrepel geom_text_repel
 #' @export
 plot_phenograph <- function(umap_2D,phenograph_obj,alpha=0.5){
-  memberships <- factor(phenograph_obj$phenograph[[2]]$membership)
+  processed_fcs <- phenograph_obj$processed_fcs
+
+  #subset processed_fcs based on umap corrdinates (safer when downsampling_umap != NULL)
+  processed_fcs <- processed_fcs[rownames(umap_2D),]
+
+  memberships <- factor(processed_fcs$Phenograph_membership)
   #define centers of each cluster
   cluster_pos <- as.data.frame(t(sapply(unique(memberships),function(x){
     ids <- which(memberships == x)
@@ -81,7 +86,7 @@ plot_ridge <- function(phenograph_obj){
 #' Plot function that display a Umap of scaled intensities for event
 #' @param umap_2D matrix detailing coordinates of each event on the umap
 #' @param processed_fcs_df dataframe of processed intensities for each event and informations of channel used as attribute
-#' @param channels vector containing channels to select. Can be "all" to select all channels, "with_desc" to select channels with a marker description or a vector a channels
+#' @param channels vector of channels to select. Can be "all" to select all channels, "with_desc" to select channels with a marker description or a vector a channels
 #' @param cut_top_99th boolean value indicating if the top 1 percent should be remove to compute scaling
 #' @param alpha numeric indicating the transparency level when plotting the umap
 #' @import ggplot2
@@ -93,6 +98,9 @@ plot_umap <- function(umap_2D,processed_fcs_df,channels=c("channels_used","all",
   all_channels <- attr(processed_fcs,"all_channels")
   channels_to_use <-  setdiff(colnames(processed_fcs),"sample_id")
 
+  #subset processed_fcs based on umap corrdinates (safer when downsampling_umap != NULL)
+  processed_fcs <- processed_fcs[rownames(umap_2D),]
+
   all_plot <- lapply(channels_to_use, function(channel){
     title <- paste(channel,all_channels[which(all_channels[,1]==channel),2],sep=" / ")
     p <- ggplot(umap_2D,aes(x=X,y=Y))
@@ -101,7 +109,6 @@ plot_umap <- function(umap_2D,processed_fcs_df,channels=c("channels_used","all",
       p <- p + geom_point(size=0.05,
                           alpha=alpha,
                           aes(colour = norm_range(processed_fcs[,channel],c(quantile(processed_fcs[,channel],probs = 0.01),quantile(processed_fcs[,channel],probs = 0.99)))))
-      #aes(colour = norm_range(processed_fcs[,channel],c(min(processed_fcs[,channel]),quantile(processed_fcs[,channel],probs = 0.99)))))
     }else{
       p <- p + geom_point(size=0.05,
                           alpha=alpha,

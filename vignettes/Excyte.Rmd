@@ -25,8 +25,9 @@ Excyte is a pipeline that allows exhaustive exploration of cytometry data. Excyt
 In R, install Excyte via GitHub with the command 
 
 ``` 
+install.packages("devtools")
 library(devtools)
-install_github("maxmeyl/Excyte")
+install_github("maximemeylan/Excyte")
 ```
 
 
@@ -78,10 +79,12 @@ excyte_plots <- plot_excyte(excyte_obj = excyte_object,alpha = 0.7)
 The visualizations can be displayed by querying the result object 
 
 ### Heatmap presenting the average intensity profile of each cluster
-```{r , fig.width = 8,fig.height=7,dpi=120} 
+
+```{r , fig.width = 8,fig.height=7,dpi=100} 
 excyte_plots$heatmap
 ```
-### Umap of event intensities for each channel 
+
+### Umap of event intensities for selected channels
 ```{r , fig.width = 8,fig.height=7,dpi=100} 
 grid.arrange(grobs=excyte_plots$umap_channels[c(9,3,4,1,2,5)],ncol=2)
 ```

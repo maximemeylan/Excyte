@@ -38,7 +38,7 @@ pre_process_fcs <- function(fcs_dir,downsampling="none",rescale_all=c(0,4.5)){
   })
   if(downsampling !="none"){
     event_for_each_sample <- lapply(event_for_each_sample,function(x){
-      if(nrow(x)>1000 & nrow(x) > downsampling){
+      if(nrow(x) > downsampling){
         x[sample(nrow(x),downsampling),]
       }else{
         return(x)
@@ -59,12 +59,12 @@ query_extract <- function(processed_fcs_obj,channels=c("all","with_desc")[1]){
   all_channels <- processed_fcs_obj$all_channels
   processed_fcs_df <- processed_fcs_obj$processed_fcs
   #if channels are not specified
-  if (all(channels == "with_desc")) {
+  if (all(channels == "with_desc")){
     channels_to_select <- all_channels[!is.na(all_channels[, "desc"]), 1]
     processed_fcs_df <- processed_fcs_df[, c(channels_to_select, "sample_id")]
     channels <- colnames(processed_fcs_df)[colnames(processed_fcs_df) != "sample_id"]
   }
-  if (all(channels != "with_desc") & all(channels != "all")) {
+  if (all(channels != "with_desc") & all(channels != "all")){
     processed_fcs_df <- processed_fcs_df[, c(channels, "sample_id")]
     channels <- colnames(processed_fcs_df)[colnames(processed_fcs_df) != "sample_id"]
   } else{

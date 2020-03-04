@@ -4,7 +4,12 @@
 \alias{compute_umap}
 \title{Compute Umap coordinates for each event}
 \usage{
-compute_umap(processed_fcs_obj, channels = c("all", "with_desc")[1], k = 30)
+compute_umap(
+  processed_fcs_obj,
+  channels = c("all", "with_desc")[1],
+  k = 30,
+  downsampling_umap = NULL
+)
 }
 \arguments{
 \item{processed_fcs_obj}{list containing a datraframe of processed intensities for each event and informations of channel used}
@@ -12,6 +17,8 @@ compute_umap(processed_fcs_obj, channels = c("all", "with_desc")[1], k = 30)
 \item{channels}{vector containing channels to select. Can be "all" to select all channels, "with_desc" to select channels with a marker description or a vector a channels.}
 
 \item{k}{numeric indicating the number of neighbor for phenograph and umap computation}
+
+\item{downsampling_umap}{numeric indicating the number of events to select to compute the umap}
 }
 \description{
 Compute Umap coordinates for each event

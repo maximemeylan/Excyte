@@ -3,19 +3,25 @@
 #' @param downsampling numeric indicating the number event to randomly select from each fcs, if the number of events request is bigger than the number of event in the  fcs, all event are selected
 #' @param channels vector containing channels to select. Can be "all" to select all channels, "with_desc" to select channels with a marker description or a vector a channels.
 #' @param k numeric indicating the number of neighbor for phenograph and umap computation
+#' @param downsampling_umap numeric indicating the number of events to sample to compute the umap
 #' @export
 run_excyte <- function(fcs_dir,
                        downsampling=3000,
+                       downsampling_umap=NULL,
                        channels="all",
                        k=30){
+  if(any(!is.null(downsampling_umap) & downsampling_umap > downsampling)){
+    stop("the number of events to sample for umap should smaller than the number of event sampled for the pipeline")
+  }
   #pre-process fcs
   processed_fcs_obj <- pre_process_fcs(fcs_dir = fcs_dir,downsampling = downsampling)
   #compute phenograph membership for each event
   phenograph_obj <- compute_phenograph(processed_fcs_obj,channels = channels,k = k)
-  #compute umap for each event
-  umap_obj <- compute_umap(processed_fcs_obj,channels = channels,k=k)
+  #compute umap coordinates for each event
+  umap_obj <- compute_umap(processed_fcs_obj,channels = channels,k=k,downsampling_umap=downsampling_umap)
   return(list("processed_fcs_obj"=processed_fcs_obj,"phenograph_obj"=phenograph_obj,"umap_obj"=umap_obj))
 }
+
 #' Rerun the excyte pipeline on selected phenograph clusters
 #' @param excyte_obj list of object obtained from an initial run with the excyte pipeline
 #' @param channels vector containing channels to select. Can be "all" to select all channels, "with_desc" to select channels with a marker description or a vector a channels.
@@ -65,12 +71,24 @@ compute_phenograph <- function(processed_fcs_obj,channels=c("all","with_desc")[1
 #' @param processed_fcs_obj list containing a datraframe of processed intensities for each event and informations of channel used
 #' @param channels vector containing channels to select. Can be "all" to select all channels, "with_desc" to select channels with a marker description or a vector a channels.
 #' @param k numeric indicating the number of neighbor for phenograph and umap computation
+#' @param downsampling_umap numeric indicating the number of events to select to compute the umap
 #' @import umap
 #' @importFrom stats setNames
 #' @export
 
-compute_umap <- function(processed_fcs_obj,channels=c("all","with_desc")[1],k=30){
+compute_umap <- function(processed_fcs_obj,channels=c("all","with_desc")[1],k=30,downsampling_umap=NULL){
   processed_fcs<- query_extract(processed_fcs_obj,channels=channels)
+  #randomly select events according to downsampling umap value
+  if(!is.null(downsampling_umap)){
+    selected_events <- sapply(unique(processed_fcs$sample_id),function(x){
+      if(sum(processed_fcs$sample_id == x)  >= downsampling_umap){
+        sample(x = rownames(processed_fcs[processed_fcs$sample_id == x,]),size = downsampling_umap)
+      }else{
+        rownames(processed_fcs[processed_fcs$sample_id == x,])
+      }
+    })
+    processed_fcs <- processed_fcs[unlist(selected_events),]
+  }
   channels_to_use <- setdiff(colnames(processed_fcs),"sample_id")
   message("\nComputing Umap with channels: \t",paste0(channels_to_use,collapse = "\t"))
   #compute umap

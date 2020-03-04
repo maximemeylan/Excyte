@@ -17,7 +17,7 @@ plot_umap(
 
 \item{processed_fcs_df}{dataframe of processed intensities for each event and informations of channel used as attribute}
 
-\item{channels}{vector containing channels to select. Can be "all" to select all channels, "with_desc" to select channels with a marker description or a vector a channels}
+\item{channels}{vector of channels to select. Can be "all" to select all channels, "with_desc" to select channels with a marker description or a vector a channels}
 
 \item{cut_top_99th}{boolean value indicating if the top 1 percent should be remove to compute scaling}
 
