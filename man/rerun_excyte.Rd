@@ -8,6 +8,7 @@ rerun_excyte(
   excyte_obj,
   clusters_id = NA,
   downsampling = 3000,
+  downsampling_umap = NULL,
   channels = "all",
   k = 30
 )
@@ -18,6 +19,8 @@ rerun_excyte(
 \item{clusters_id}{vector of character containing the ID of the phenograph clusters to rerun the excyte pipeline on}
 
 \item{downsampling}{numeric indicating the number event to randomly select from each fcs, if the number of events request is bigger than the number of event in the  fcs, all event are selected}
+
+\item{downsampling_umap}{numeric indicating the number of events to sample to compute the umap}
 
 \item{channels}{vector containing channels to select. Can be "all" to select all channels, "with_desc" to select channels with a marker description or a vector a channels.}
 

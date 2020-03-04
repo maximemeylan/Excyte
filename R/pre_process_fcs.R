@@ -18,7 +18,7 @@
 #'
 
 #Open fcs and put then in a flowset
-pre_process_fcs <- function(fcs_dir,downsampling="none",rescale_all=c(0,4.5)){
+pre_process_fcs <- function(fcs_dir,downsampling=NULL,rescale_all=c(0,4.5)){
   fs <- read.flowSet(fcs_dir,transformation = F,emptyValue = F)
   #get markers
   all_channels <- pData(parameters(fs[[1]]))[,c(1,2)]
@@ -36,7 +36,7 @@ pre_process_fcs <- function(fcs_dir,downsampling="none",rescale_all=c(0,4.5)){
     mat[,"sample_id"] <-identifier(ff)
     return(mat)
   })
-  if(downsampling !="none"){
+  if(!is.null(downsampling)){
     event_for_each_sample <- lapply(event_for_each_sample,function(x){
       if(nrow(x) > downsampling){
         x[sample(nrow(x),downsampling),]

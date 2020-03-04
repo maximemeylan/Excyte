@@ -28,23 +28,33 @@ run_excyte <- function(fcs_dir,
 #' @param k numeric indicating the number of neighbor for phenograph and umap computation
 #' @param downsampling numeric indicating the number event to randomly select from each fcs, if the number of events request is bigger than the number of event in the  fcs, all event are selected
 #' @param clusters_id vector of character containing the ID of the phenograph clusters to rerun the excyte pipeline on
+#' @param downsampling_umap numeric indicating the number of events to sample to compute the umap
 
 #' @export
 rerun_excyte <- function(excyte_obj,
                          clusters_id=NA,
                          downsampling=3000,
+                         downsampling_umap=NULL,
                          channels="all",
                          k=30){
   if(any(is.na(clusters_id))){
     stop("Please submit valid clusters ID")
   }
+  if(any(!is.null(downsampling_umap) & downsampling_umap > downsampling)){
+    stop("the number of events to sample for umap should smaller than the number of event sampled for the pipeline")
+  }
   message("Excyte re-running with selected clusters: ",paste0(clusters_id," "))
   event_to_select <- excyte_obj$phenograph_obj$processed_fcs$Phenograph_membership %in% clusters_id
   excyte_obj$processed_fcs_obj$processed_fcs <- excyte_obj$processed_fcs_obj$processed_fcs[event_to_select,]
+  #downsample if requested
+  if(!is.null(downsampling)){
+    excyte_obj$processed_fcs_obj$processed_fcs <- downsample(excyte_obj$processed_fcs_obj$processed_fcs,downsampling)
+  }
+
   #compute new phenograph membership for selected events
   phenograph_obj <- compute_phenograph(processed_fcs_obj = excyte_obj$processed_fcs_obj,channels = channels,k = k)
   #compute umap for selected events
-  umap_obj <- compute_umap(excyte_obj$processed_fcs_obj,channels = channels,k=k)
+  umap_obj <- compute_umap(excyte_obj$processed_fcs_obj,channels = channels,k=k,downsampling_umap =downsampling_umap)
   return(list("processed_fcs_obj"= excyte_obj$processed_fcs_obj,"phenograph_obj"=phenograph_obj,"umap_obj"=umap_obj))
 }
 #' Compute phenograph membership for each event
@@ -78,16 +88,9 @@ compute_phenograph <- function(processed_fcs_obj,channels=c("all","with_desc")[1
 
 compute_umap <- function(processed_fcs_obj,channels=c("all","with_desc")[1],k=30,downsampling_umap=NULL){
   processed_fcs<- query_extract(processed_fcs_obj,channels=channels)
-  #randomly select events according to downsampling umap value
+  #downsample if requested
   if(!is.null(downsampling_umap)){
-    selected_events <- sapply(unique(processed_fcs$sample_id),function(x){
-      if(sum(processed_fcs$sample_id == x)  >= downsampling_umap){
-        sample(x = rownames(processed_fcs[processed_fcs$sample_id == x,]),size = downsampling_umap)
-      }else{
-        rownames(processed_fcs[processed_fcs$sample_id == x,])
-      }
-    })
-    processed_fcs <- processed_fcs[unlist(selected_events),]
+    processed_fcs <- downsample(processed_fcs,downsampling_umap)
   }
   channels_to_use <- setdiff(colnames(processed_fcs),"sample_id")
   message("\nComputing Umap with channels: \t",paste0(channels_to_use,collapse = "\t"))

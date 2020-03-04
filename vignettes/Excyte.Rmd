@@ -49,8 +49,9 @@ set.seed(8)
 
 #run the pipeline
 excyte_object <- run_excyte(fcs_dir = file.location[1:3],
-                            downsampling = 2000,
-                            channels = "with_desc")
+                            downsampling = 3000,
+                            channels = "with_desc",
+                            downsampling_umap = 1000)
 ```
 ## Results of the pipeline
 

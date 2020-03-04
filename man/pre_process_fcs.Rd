@@ -5,7 +5,7 @@
 \title{Extract and aggreagte fluorescence intensity matrixx of FCS files.
 Perfom logicle transformation and scaling, downsampling if necessary}
 \usage{
-pre_process_fcs(fcs_dir, downsampling = "none", rescale_all = c(0, 4.5))
+pre_process_fcs(fcs_dir, downsampling = NULL, rescale_all = c(0, 4.5))
 }
 \arguments{
 \item{fcs_dir}{directory or vector containing fcs files to be used}
