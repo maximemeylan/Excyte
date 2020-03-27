@@ -1,5 +1,8 @@
 #' @importFrom reshape2 melt
-norm_range <- function(x, range = c(0, 4.5)) {
+#' @importFrom flowCore read.flowSet
+#' @importFrom flowCore pData
+#'
+norm_range <- function(x, range = c(0, 4.5)){
   (x - min(x))/(max(x) - min(x)) * (range[2] - range[1]) + range[1]
 }
 melt_df <- function(df,var_to_group){
@@ -15,9 +18,14 @@ downsample <- function(df,number_to_sample){
     }else{
       rownames(df[df$sample_id == x,])
     }
-    })
+  })
   df <- df[unlist(selected_events),]
   return(df)
 }
 
-
+check_channels <- function(fcs_files){
+  fs <- read.flowSet(fcs_files,transformation = F,emptyValue = F)
+  #get markers
+  all_channels <- pData(parameters(fs[[1]]))[,c(1,2)]
+  return(all_channels)
+}

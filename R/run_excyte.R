@@ -29,8 +29,8 @@ run_excyte <- function(fcs_dir,
 #' @param downsampling numeric indicating the number event to randomly select from each fcs, if the number of events request is bigger than the number of event in the  fcs, all event are selected
 #' @param clusters_id vector of character containing the ID of the phenograph clusters to rerun the excyte pipeline on
 #' @param downsampling_umap numeric indicating the number of events to sample to compute the umap
-
 #' @export
+#'
 rerun_excyte <- function(excyte_obj,
                          clusters_id=NA,
                          downsampling=3000,
@@ -70,7 +70,9 @@ compute_phenograph <- function(processed_fcs_obj,channels=c("all","with_desc")[1
 
   #compute phenograph
   phenograph_obj <- Rphenograph(processed_fcs[,channels_to_use],k = k)
-  processed_fcs$Phenograph_membership <- factor(paste0("c",phenograph_obj[[2]]$membership))
+  spacer  <- ifelse(nchar(phenograph_obj[[2]]$membership) <2,"C_0","C_")
+  processed_fcs$Phenograph_membership <- factor(paste0(spacer,phenograph_obj[[2]]$membership))
+
   phenograph_perc <- t(sapply(unique(processed_fcs$sample_id),function(y){
     all_pop <- table(processed_fcs[processed_fcs$sample_id == y,"Phenograph_membership"])
     perc <- all_pop/sum(all_pop)

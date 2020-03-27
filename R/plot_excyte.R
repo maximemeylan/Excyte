@@ -153,13 +153,12 @@ plot_cluster_profile_heatmap <- function(phenograph_obj,
     colMeans(processed_fcs[processed_fcs$Phenograph_membership==x,channels_to_use])
   })
   if(show_perc){
-    mean_perc <- colMeans(phenograph_obj$phenograph_percentage)
-    colnames(mean_intensity_pheno)<- paste0(clusters_id," ",round(mean_perc[clusters_id],digits = 3)*100,"%")
+    mean_perc <- colMeans(phenograph_obj$phenograph_percentage[,clusters_id])
+    colnames(mean_intensity_pheno)<- paste0(clusters_id,"  ",round(mean_perc,digits = 3)*100,"%")
   }else{
     colnames(mean_intensity_pheno)<- clusters_id
   }
   if(cut_top_99th){
-    #normalized_mean_intensity_pheno <- apply(mean_intensity_pheno,2,function(x) norm_range(x,range=c(min(x),quantile(x,probs = 0.98))))
     normalized_mean_intensity_pheno <- apply(mean_intensity_pheno,2,function(x) norm_range(x,c(range=quantile(x,probs = 0.01),quantile(x,probs = 0.99))))
 
   }else{
