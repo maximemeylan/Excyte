@@ -1,6 +1,4 @@
 #' @importFrom reshape2 melt
-#' @importFrom flowCore read.flowSet
-#' @importFrom flowCore pData
 #'
 norm_range <- function(x, range = c(0, 4.5)){
   (x - min(x))/(max(x) - min(x)) * (range[2] - range[1]) + range[1]
@@ -23,6 +21,10 @@ downsample <- function(df,number_to_sample){
   return(df)
 }
 
+#' @importFrom flowCore read.flowSet
+#' @importFrom flowCore pData
+#' @param fcs_files path of a fcs file
+#' @export
 check_channels <- function(fcs_files){
   fs <- read.flowSet(fcs_files,transformation = F,emptyValue = F)
   #get markers
