@@ -24,13 +24,27 @@ pre_process_fcs <- function(fcs_dir,downsampling=NULL,rescale_all=c(0,4.5)){
   fs <- read.flowSet(fcs_dir,transformation = F,emptyValue = F)
   #get markers
   all_channels <- pData(parameters(fs[[1]]))[,c(1,2)]
-  all_channels <- all_channels[as.vector(all_channels[,1] != "Time" & all_channels[,1] != "Event"),]
+  all_channels <- all_channels[as.vector(all_channels[,1] != "T- e" & all_channels[,1] != "Event"),]
   shape_marker <- grep('FSC|SSC',all_channels$name,value = T)
+  channels_to_normalize <- setdiff(all_channels[,1],shape_marker)
   #transform values
   event_for_each_sample <- fsApply(fs,function(ff){
-   lgcl <- estimateLogicle(ff, channels = setdiff(all_channels[,1],shape_marker),type="data")
-   ff <- transform(ff,lgcl)
-   mat <- data.frame(exprs(ff),check.names = F)
+    param_T_list <- lapply(channels_to_normalize,function(chan){
+      lgcl <- estimateLogicle(ff, channels = chan,type="data")
+      param_T <- sapply(c("t","m", "a", "w"), function(param) as.numeric(format(as.vector(environment(lgcl@transforms[[chan]]@f)[[param]]), digits = 2)))
+      if(param_T["w"] > 2 | param_T["w"] < 0 ){
+        warning(paste0("estimateLogicle failed for channel: ", chan, " defaulting to standard parameters"))
+        param_T["t"] <- 4000
+        param_T["m"] <- 4.5
+        param_T["a"] <- 0
+        param_T["w"] <- 0.1
+      }
+      logicleTransform(transformationId = chan,
+                       w = param_T["w"], t = param_T["t"], m = param_T["m"], a = param_T["a"] )
+    })
+    lgcl <- transformList(channels_to_normalize, param_T_list)
+    ff <- transform(ff,lgcl)
+    mat <- data.frame(exprs(ff),check.names = F)
    #linear scale for scatter values
    if(!is.null(shape_marker)){
     mat[,shape_marker]<- sapply(shape_marker,function(x) norm_range(mat[,x,drop=F]))
