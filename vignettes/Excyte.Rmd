@@ -113,7 +113,7 @@ markers <- excyte_object$processed_fcs_obj$all_channels[c(c(11,7,12,13,8,14)),1]
 
 rerun_object <- rerun_excyte(excyte_obj = excyte_object,
                              clusters_id = c("c7","c15","c9","c13","c14","c5","c3"), 
-                             channels = markers)
+                             channels = markers,)
 rerun_plots <- plot_excyte(excyte_obj = rerun_object,alpha = 1)
 grid.arrange(grobs=rerun_plots$umap_channels,ncol=2)
 ```

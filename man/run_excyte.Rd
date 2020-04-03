@@ -22,6 +22,8 @@ run_excyte(
 
 \item{channels}{vector containing channels to select. Can be "all" to select all channels, "with_desc" to select channels with a marker description or a vector a channels.}
 
+\item{method}{define if the umap should be computed with the python package (umap-learn) or with the naive R implementation}
+
 \item{k}{numeric indicating the number of neighbor for phenograph and umap computation}
 }
 \description{

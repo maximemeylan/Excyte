@@ -65,6 +65,11 @@ plot_phenograph <- function(umap_2D,phenograph_obj,alpha=0.5){
 #' @import ggplot2
 #' @import ggridges
 #' @param phenograph_obj list containing result of phenograph clustering and processed fcs
+#' @param channels vector of channels to use, default uses all channels
+#' @param cluster_to_use vector of cluster to use, default uses all clusters
+#' @param type character, plot selected channels for each clusters (type="clusters") or selected clusters for each channel (type="channels")
+#' @param downsampling numeric indicating the number of events to plot
+#' @param channel_names character, edit channels names accordingly
 #' @export
 plot_ridge <- function(phenograph_obj,
                        channels="all",

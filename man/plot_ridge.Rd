@@ -15,6 +15,16 @@ plot_ridge(
 }
 \arguments{
 \item{phenograph_obj}{list containing result of phenograph clustering and processed fcs}
+
+\item{channels}{vector of channels to use, default uses all channels}
+
+\item{cluster_to_use}{vector of cluster to use, default uses all clusters}
+
+\item{type}{character, plot selected channels for each clusters (type="clusters") or selected clusters for each channel (type="channels")}
+
+\item{downsampling}{numeric indicating the number of events to plot}
+
+\item{channel_names}{character, edit channels names accordingly}
 }
 \description{
 Plot function to display channels intensities according to event memberships

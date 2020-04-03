@@ -4,6 +4,7 @@
 #' @param channels vector containing channels to select. Can be "all" to select all channels, "with_desc" to select channels with a marker description or a vector a channels.
 #' @param k numeric indicating the number of neighbor for phenograph and umap computation
 #' @param downsampling_umap numeric indicating the number of events to sample to compute the umap
+#' @param method define if the umap should be computed with the python package (umap-learn) or with the naive R implementation
 #' @export
 run_excyte <- function(fcs_dir,
                        downsampling=3000,
@@ -30,6 +31,7 @@ run_excyte <- function(fcs_dir,
 #' @param downsampling numeric indicating the number event to randomly select from each fcs, if the number of events request is bigger than the number of event in the  fcs, all event are selected
 #' @param clusters_id vector of character containing the ID of the phenograph clusters to rerun the excyte pipeline on
 #' @param downsampling_umap numeric indicating the number of events to sample to compute the umap
+#' @param method define if the umap should be computed with the python package (umap-learn) or with the naive R implementation
 #' @export
 #'
 rerun_excyte <- function(excyte_obj,
