@@ -4,7 +4,14 @@
 \alias{plot_ridge}
 \title{Plot function to display channels intensities according to event memberships}
 \usage{
-plot_ridge(phenograph_obj)
+plot_ridge(
+  phenograph_obj,
+  channels = "all",
+  cluster_to_use = "all",
+  type = c("channels", "clusters")[1],
+  downsampling = NULL,
+  channel_names = c("channel_only", "marker_only", "both")[3]
+)
 }
 \arguments{
 \item{phenograph_obj}{list containing result of phenograph clustering and processed fcs}

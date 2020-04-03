@@ -8,7 +8,8 @@ compute_umap(
   processed_fcs_obj,
   channels = c("all", "with_desc")[1],
   k = 30,
-  downsampling_umap = NULL
+  downsampling_umap = NULL,
+  method = c("umap-learn", "naive")[1]
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ compute_umap(
 \item{k}{numeric indicating the number of neighbor for phenograph and umap computation}
 
 \item{downsampling_umap}{numeric indicating the number of events to select to compute the umap}
+
+\item{method}{define if the umap should be computed with the python package (umap-learn) or with the naive R implementation}
 }
 \description{
 Compute Umap coordinates for each event

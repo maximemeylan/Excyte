@@ -10,6 +10,7 @@ rerun_excyte(
   downsampling = 3000,
   downsampling_umap = NULL,
   channels = "all",
+  method = c("umap-learn", "naive")[1],
   k = 30
 )
 }

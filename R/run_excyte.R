@@ -9,6 +9,7 @@ run_excyte <- function(fcs_dir,
                        downsampling=3000,
                        downsampling_umap=NULL,
                        channels="all",
+                       method=c("umap-learn","naive")[1],
                        k=30){
   if(any(!is.null(downsampling_umap) & downsampling_umap > downsampling)){
     stop("the number of events to sample for umap should smaller than the number of event sampled for the pipeline")
@@ -18,7 +19,7 @@ run_excyte <- function(fcs_dir,
   #compute phenograph membership for each event
   phenograph_obj <- compute_phenograph(processed_fcs_obj,channels = channels,k = k)
   #compute umap coordinates for each event
-  umap_obj <- compute_umap(processed_fcs_obj,channels = channels,k=k,downsampling_umap=downsampling_umap)
+  umap_obj <- compute_umap(processed_fcs_obj,channels = channels,k=k,downsampling_umap=downsampling_umap,method=method)
   return(list("processed_fcs_obj"=processed_fcs_obj,"phenograph_obj"=phenograph_obj,"umap_obj"=umap_obj))
 }
 
@@ -36,6 +37,7 @@ rerun_excyte <- function(excyte_obj,
                          downsampling=3000,
                          downsampling_umap=NULL,
                          channels="all",
+                         method=c("umap-learn","naive")[1],
                          k=30){
   if(any(is.na(clusters_id))){
     stop("Please submit valid clusters ID")
@@ -54,7 +56,7 @@ rerun_excyte <- function(excyte_obj,
   #compute new phenograph membership for selected events
   phenograph_obj <- compute_phenograph(processed_fcs_obj = excyte_obj$processed_fcs_obj,channels = channels,k = k)
   #compute umap for selected events
-  umap_obj <- compute_umap(excyte_obj$processed_fcs_obj,channels = channels,k=k,downsampling_umap =downsampling_umap)
+  umap_obj <- compute_umap(excyte_obj$processed_fcs_obj,channels = channels,k=k,downsampling_umap =downsampling_umap,method=method)
   return(list("processed_fcs_obj"= excyte_obj$processed_fcs_obj,"phenograph_obj"=phenograph_obj,"umap_obj"=umap_obj))
 }
 #' Compute phenograph membership for each event
@@ -84,11 +86,12 @@ compute_phenograph <- function(processed_fcs_obj,channels=c("all","with_desc")[1
 #' @param channels vector containing channels to select. Can be "all" to select all channels, "with_desc" to select channels with a marker description or a vector a channels.
 #' @param k numeric indicating the number of neighbor for phenograph and umap computation
 #' @param downsampling_umap numeric indicating the number of events to select to compute the umap
+#' @param method define if the umap should be computed with the python package (umap-learn) or with the naive R implementation
 #' @import umap
 #' @importFrom stats setNames
 #' @export
 
-compute_umap <- function(processed_fcs_obj,channels=c("all","with_desc")[1],k=30,downsampling_umap=NULL){
+compute_umap <- function(processed_fcs_obj,channels=c("all","with_desc")[1],k=30,downsampling_umap=NULL,method=c("umap-learn","naive")[1]){
   processed_fcs<- query_extract(processed_fcs_obj,channels=channels)
   #downsample if requested
   if(!is.null(downsampling_umap)){
@@ -97,7 +100,7 @@ compute_umap <- function(processed_fcs_obj,channels=c("all","with_desc")[1],k=30
   channels_to_use <- setdiff(colnames(processed_fcs),"sample_id")
   message("\nComputing Umap with channels: \t",paste0(channels_to_use,collapse = "\t"))
   #compute umap
-  umap_obj <- umap(processed_fcs[,channels_to_use],method = "umap-learn",k=k)
+  umap_obj <- umap(processed_fcs[,channels_to_use],method = method,k=k)
   umap_obj_2D <- setNames(data.frame(umap_obj$layout,check.names = F),c("X","Y"))
   return(list("umap_obj"=umap_obj,"umap_2D"=umap_obj_2D,"channels_used"=channels_to_use))
 }

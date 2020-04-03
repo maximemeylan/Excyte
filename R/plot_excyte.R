@@ -66,20 +66,69 @@ plot_phenograph <- function(umap_2D,phenograph_obj,alpha=0.5){
 #' @import ggridges
 #' @param phenograph_obj list containing result of phenograph clustering and processed fcs
 #' @export
-plot_ridge <- function(phenograph_obj){
-  processed_fcs <- phenograph_obj$processed_fcs
+plot_ridge <- function(phenograph_obj,
+                       channels="all",
+                       cluster_to_use="all",
+                       type=c("channels","clusters")[1],
+                       downsampling=NULL,
+                       channel_names=c("channel_only","marker_only","both")[3]){
+
+  if(all(cluster_to_use!="all")){
+    processed_fcs <- phenograph_obj$processed_fcs[phenograph_obj$processed_fcs$Phenograph_membership %in%  cluster_to_use ,]
+  }else{
+    processed_fcs <- phenograph_obj$processed_fcs
+    cluster_to_use <- as.character(unique(processed_fcs$Phenograph_membership))
+    cluster_to_use <- cluster_to_use[order(nchar(cluster_to_use), cluster_to_use)]
+  }
   all_channels <- attr(processed_fcs,"all_channels")
-  channels_to_plot <- intersect(colnames(processed_fcs),all_channels[,"name"])
-  all_plots <- lapply(channels_to_plot,function(x){
-    melted_df<- melt_df(processed_fcs[,c(x,"Phenograph_membership")],var_to_group ="Phenograph_membership")
-    p <- ggplot(melted_df, aes(x = value, y = groups,fill = groups))
-    p <- p + geom_density_ridges(scale = 4, rel_min_height = 0.045,alpha = 0.85)
-    p <- p + theme_ridges()
-    p <- p + theme(axis.title.y = element_blank(),axis.title.x = element_blank())
-    p <- p + labs(title=paste(x,all_channels[which(all_channels[,1]==x),2],sep=" / "))
-    p <- p + scale_fill_discrete(guide=FALSE)
-    return(p)
-  })
+  if(all(channels=="all")){
+    channels <- intersect(colnames(processed_fcs),all_channels[,"name"])
+  }
+  if(!is.null(downsampling)){
+    processed_fcs <- downsample(processed_fcs,downsampling)
+  }
+  #plot clusters for each channels
+  if(type == "channels"){
+    all_plots <- lapply(channels,function(x){
+      melted_df<- melt_df(processed_fcs[,c(x,"Phenograph_membership")],var_to_group ="Phenograph_membership")
+      p <- ggplot(melted_df, aes(x = value, y = groups,fill = groups))
+      p <- p + geom_density_ridges(scale = 4, rel_min_height = 0.045,alpha = 0.85)
+      p <- p + theme_ridges()
+      p <- p + theme(axis.title.y = element_blank(),axis.title.x = element_blank())
+      if(channel_names == "both"){
+        p <- p + labs(title=paste(x,all_channels[which(all_channels[,1]==x),2],sep=" / "))
+      }
+      if(channel_names == "marker_only"){
+        p <- p + labs(title=as.character(all_channels[which(all_channels[,1]==x),"desc"]))
+      }
+      p <- p + scale_fill_discrete(guide=FALSE)
+      p <- p + scale_x_continuous(limits = c(-0.5, 4.5))
+      return(p)
+    })
+  }
+  #plot channels for each cluster
+  if(type == "clusters"){
+    all_plots <- lapply(cluster_to_use,function(x){
+      temp_df <- data.frame(t(processed_fcs[processed_fcs$Phenograph_membership == x,c(channels)]))
+      temp_df$chan <- rownames(temp_df)
+      melted_df<- melt_df(temp_df,var_to_group ="chan")
+      p <- ggplot(melted_df, aes(x = value, y = groups,fill = groups))
+      p <- p + geom_density_ridges(scale = 4, rel_min_height = 0.045,alpha = 0.85)
+      p <- p + theme_ridges()
+      p <- p + theme(axis.title.y = element_blank(),axis.title.x = element_blank())
+      p <- p + labs(title=x)
+      if(channel_names == "both"){
+        p <- p + scale_y_discrete(labels=paste( channels,all_channels[match(channels,all_channels$name),"desc"],sep=" / "))
+      }
+      if(channel_names == "marker_only"){
+        p <- p + scale_y_discrete(labels=as.character(all_channels[match(channels,all_channels$name),"desc"]))
+      }
+      p <- p + scale_fill_discrete(guide=FALSE)
+      p <- p + scale_x_continuous(limits = c(-0.5, 4.5))
+      return(p)
+    })
+  }
+
   return(all_plots)
 }
 
