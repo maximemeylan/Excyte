@@ -24,7 +24,7 @@ pre_process_fcs <- function(fcs_dir,downsampling=NULL,rescale_all=c(0,4.5)){
   fs <- read.flowSet(fcs_dir,transformation = F,emptyValue = F)
   #get markers
   all_channels <- pData(parameters(fs[[1]]))[,c(1,2)]
-  all_channels <- all_channels[as.vector(all_channels[,1] != "T- e" & all_channels[,1] != "Event"),]
+  all_channels <- all_channels[as.vector(all_channels[,1] != "Time" & all_channels[,1] != "Event"),]
   shape_marker <- grep('FSC|SSC',all_channels$name,value = T)
   channels_to_normalize <- setdiff(all_channels[,1],shape_marker)
   #transform values

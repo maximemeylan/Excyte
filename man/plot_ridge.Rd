@@ -9,7 +9,9 @@ plot_ridge(
   channels = "all",
   cluster_to_use = "all",
   type = c("channels", "clusters")[1],
+  show_median = T,
   downsampling = NULL,
+  limits = c(-0.2, 4.3),
   channel_names = c("channel_only", "marker_only", "both")[3]
 )
 }

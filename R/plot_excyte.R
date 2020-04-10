@@ -23,7 +23,10 @@ plot_excyte <- function(excyte_obj,cut_top_99th=T,show_perc=T,alpha=0.5){
                                           cut_top_99th = T,
                                           show_perc = show_perc)
   #display cell repartition according to phenograph memberships for each channels and save plots in a list
-  ridges <- plot_ridge(excyte_obj$phenograph_obj)
+  ridges <- plot_ridge(excyte_obj$phenograph_obj,
+                       type = "channels",
+                       downsampling = 1000
+                       )
   return(list("umap_channels"=umap_channels,"umap_phenograph"=umap_phenograph,"heatmap"=heatmap,"ridges"=ridges))
 }
 
@@ -75,9 +78,10 @@ plot_ridge <- function(phenograph_obj,
                        channels="all",
                        cluster_to_use="all",
                        type=c("channels","clusters")[1],
+                       show_median=T,
                        downsampling=NULL,
+                       limits=c(-0.2,4.3),
                        channel_names=c("channel_only","marker_only","both")[3]){
-
   if(all(cluster_to_use!="all")){
     processed_fcs <- phenograph_obj$processed_fcs[phenograph_obj$processed_fcs$Phenograph_membership %in%  cluster_to_use ,]
   }else{
@@ -92,6 +96,19 @@ plot_ridge <- function(phenograph_obj,
   if(!is.null(downsampling)){
     processed_fcs <- downsample(processed_fcs,downsampling)
   }
+  if(channel_names == "both" | channel_names =="marker_only"){
+    if(channel_names == "both"){
+      edited_channels_name <- paste( channels,all_channels[match(channels,all_channels$name),"desc"],sep=" / ")
+      edited_channels_name <- gsub(x = edited_channels_name,pattern = " / NA",replacement = "")
+    }else if(channel_names =="marker_only"){
+      edited_channels_name <- all_channels[match(channels,all_channels$name),"desc"]
+      na_str <- is.na(edited_channels_name)
+      edited_channels_name[na_str] <- channels[na_str]
+    }
+    order <- match(channels,colnames(processed_fcs))
+    colnames(processed_fcs)[order] <- edited_channels_name
+    channels <- edited_channels_name
+  }
   #plot clusters for each channels
   if(type == "channels"){
     all_plots <- lapply(channels,function(x){
@@ -99,15 +116,13 @@ plot_ridge <- function(phenograph_obj,
       p <- ggplot(melted_df, aes(x = value, y = groups,fill = groups))
       p <- p + geom_density_ridges(scale = 4, rel_min_height = 0.045,alpha = 0.85)
       p <- p + theme_ridges()
+      if(show_median){
+        p <- p + geom_vline(xintercept=median(processed_fcs[,x],na.rm=T), linetype="dashed", color = "red")
+      }
       p <- p + theme(axis.title.y = element_blank(),axis.title.x = element_blank())
-      if(channel_names == "both"){
-        p <- p + labs(title=paste(x,all_channels[which(all_channels[,1]==x),2],sep=" / "))
-      }
-      if(channel_names == "marker_only"){
-        p <- p + labs(title=as.character(all_channels[which(all_channels[,1]==x),"desc"]))
-      }
       p <- p + scale_fill_discrete(guide=FALSE)
-      p <- p + scale_x_continuous(limits = c(-0.5, 4.5))
+      p <- p + scale_x_continuous(limits = limits)
+      p <- p + labs(title=x)
       return(p)
     })
   }
@@ -122,18 +137,12 @@ plot_ridge <- function(phenograph_obj,
       p <- p + theme_ridges()
       p <- p + theme(axis.title.y = element_blank(),axis.title.x = element_blank())
       p <- p + labs(title=x)
-      if(channel_names == "both"){
-        p <- p + scale_y_discrete(labels=paste( channels,all_channels[match(channels,all_channels$name),"desc"],sep=" / "))
-      }
-      if(channel_names == "marker_only"){
-        p <- p + scale_y_discrete(labels=as.character(all_channels[match(channels,all_channels$name),"desc"]))
-      }
+      #p <- p + scale_y_discrete(labels=markernames)
       p <- p + scale_fill_discrete(guide=FALSE)
-      p <- p + scale_x_continuous(limits = c(-0.5, 4.5))
+      p <- p + scale_x_continuous(limits = limits)
       return(p)
     })
   }
-
   return(all_plots)
 }
 
@@ -208,24 +217,37 @@ plot_cluster_profile_heatmap <- function(phenograph_obj,
   })
   if(show_perc){
     mean_perc <- colMeans(phenograph_obj$phenograph_percentage[,clusters_id])
-    colnames(mean_intensity_pheno)<- paste0(clusters_id,"  ",round(mean_perc,digits = 3)*100,"%")
+    percs <- round(mean_perc,digits = 3)*100
+    percs[percs<0.1] <- "< 0.1"
+    colnames(mean_intensity_pheno)<- paste0(clusters_id,"  ",percs,"%")
   }else{
     colnames(mean_intensity_pheno)<- clusters_id
   }
   if(cut_top_99th){
     normalized_mean_intensity_pheno <- apply(mean_intensity_pheno,2,function(x) norm_range(x,c(range=quantile(x,probs = 0.01),quantile(x,probs = 0.99))))
-
   }else{
     normalized_mean_intensity_pheno <- apply(mean_intensity_pheno,2,function(x) norm_range(x,range=c(0,1)))
   }
+  #change channels order
+  if(!is.null(channels_order)){
+    normalized_mean_intensity_pheno <- normalized_mean_intensity_pheno[channels_order,]
+  }else{
+    channels_order <- rownames(normalized_mean_intensity_pheno)
+  }
   if(display_marker_names==T){
-    rownames(normalized_mean_intensity_pheno) <- sapply(rownames(normalized_mean_intensity_pheno), function(x)paste(x,all_channels[which(all_channels[,1]==x),2],sep=" / "))
+    new_rownames <- all_channels[match(channels_order,all_channels$name),"desc"]
+    new_rownames[is.na(new_rownames)] <- channels_order[is.na(new_rownames)]
+    rownames(normalized_mean_intensity_pheno) <- new_rownames
   }
   if(palette=="default"){
     palette <- colorRampPalette(brewer.pal(name = "PuBu",n=9))(100)
   }
+  #change clusters order
+  if(!is.null(memberships_order)){
+    normalized_mean_intensity_pheno <- normalized_mean_intensity_pheno[,memberships_order]
+  }
   if(!is.null(channels_order)&!is.null(memberships_order)){
-    pheatmap(t(normalized_mean_intensity_pheno[channels_order,memberships_order]),
+    pheatmap(t(normalized_mean_intensity_pheno),
              color=palette,
              angle_col = 0,
              cluster_cols = F,
@@ -233,23 +255,24 @@ plot_cluster_profile_heatmap <- function(phenograph_obj,
              cluster_rows = F,
              ...)
   }else if(!is.null(channels_order)){
-    pheatmap(t(normalized_mean_intensity_pheno[channels_order,]),
+    pheatmap(t(normalized_mean_intensity_pheno),
              color=palette,
              cluster_cols = F,
              silent = T,
              angle_col = 0,
              ...)
   }else if(!is.null(memberships_order)){
-    pheatmap(t(normalized_mean_intensity_pheno[,memberships_order]),
+    pheatmap(t(normalized_mean_intensity_pheno),
              color=palette,
              cluster_rows = F,
              silent = T,
              angle_col = 0,
              ...)
   }else{
-    pheatmap(t(normalized_mean_intensity_pheno),
+    p <- pheatmap(t(normalized_mean_intensity_pheno),
              color=palette,
              silent = T,
+             angle_col = 45,
              ...)
   }
 
