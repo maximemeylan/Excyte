@@ -5,13 +5,14 @@
 #' @param show_perc boolean indicating if percentages for each cluster should be displayed
 #' @param alpha numeric indicating the transparency level when plotting the umap
 #' @export
-plot_excyte <- function(excyte_obj,cut_top_99th=T,show_perc=T,alpha=0.5){
+plot_excyte <- function(excyte_obj,cut_top_99th=T,show_perc=T,alpha=0.5,title='both'){
   #generate umaps for selected channels and save plots in a list
   umap_channels <- plot_umap(umap_2D = excyte_obj$umap_obj$umap_2D,
                              processed_fcs_df = excyte_obj$processed_fcs_obj,
                              channels =  excyte_obj$umap_obj$channels_used,
                              cut_top_99th = cut_top_99th,
-                             alpha=alpha)
+                             alpha=alpha,
+                             title=title)
   #plot umap to visualize phenograph memberships
   umap_phenograph <- plot_phenograph(umap_2D = excyte_obj$umap_obj$umap_2D,
                                      phenograph_obj = excyte_obj$phenograph_obj,
@@ -56,7 +57,7 @@ plot_phenograph <- function(umap_2D,phenograph_obj,alpha=0.5){
   cluster_pos$cluster_id <- factor(unique(memberships))
   umap_2D$colour <- memberships
   p <- ggplot(umap_2D,aes(x = X,y=Y, colour =colour ))
-  p <- p + theme_bw()
+  p <- p + theme_classic()
   p <- p + geom_point(alpha=alpha,size=0.01)
   p <- p + labs(x="",y="",color="phenograph membership")
   p <- p + guides(colour = guide_legend(override.aes = list(size=10)))
@@ -150,13 +151,18 @@ plot_ridge <- function(phenograph_obj,
 #' @param umap_2D matrix detailing coordinates of each event on the umap
 #' @param processed_fcs_df dataframe of processed intensities for each event and informations of channel used as attribute
 #' @param channels vector of channels to select. Can be "all" to select all channels, "with_desc" to select channels with a marker description or a vector a channels
-#' @param cut_top_99th boolean value indicating if the top 1 percent should be remove to compute scaling
+#' @param cut_top_99th boolean value indicating if the top 1 percent should be removed to compute color scaling
 #' @param alpha numeric indicating the transparency level when plotting the umap
 #' @import ggplot2
 #' @importFrom stats quantile
 #' @importFrom RColorBrewer brewer.pal
 #' @export
-plot_umap <- function(umap_2D,processed_fcs_df,channels=c("channels_used","all","with_desc")[1],cut_top_99th=T,alpha=0.5){
+plot_umap <- function(umap_2D,processed_fcs_df,
+                      channels=c("channels_used","all","with_desc")[1],
+                      cut_top_99th=T,
+                      title=c("both","marker","channel")[1],
+                      alpha=0.5){
+
   processed_fcs<- query_extract(processed_fcs_df,channels=channels)
   all_channels <- attr(processed_fcs,"all_channels")
   channels_to_use <-  setdiff(colnames(processed_fcs),"sample_id")
@@ -165,9 +171,16 @@ plot_umap <- function(umap_2D,processed_fcs_df,channels=c("channels_used","all",
   processed_fcs <- processed_fcs[rownames(umap_2D),]
 
   all_plot <- lapply(channels_to_use, function(channel){
-    title <- paste(channel,all_channels[which(all_channels[,1]==channel),2],sep=" / ")
+    if(title=="marker"){
+      title_to_use <- all_channels[which(all_channels[,1]==channel),2]
+    }
+    if(title=="both"){
+      title_to_use <- paste(channel,all_channels[which(all_channels[,1]==channel),2],sep=" / ")
+    }else{
+      title_to_use <-channel
+    }
     p <- ggplot(umap_2D,aes(x=X,y=Y))
-    p <- p + theme_bw()
+    p <- p + theme_classic()
     if(cut_top_99th){
       p <- p + geom_point(size=0.05,
                           alpha=alpha,
@@ -178,7 +191,7 @@ plot_umap <- function(umap_2D,processed_fcs_df,channels=c("channels_used","all",
                           aes(colour = processed_fcs[,channel]))
     }
     p <- p + scale_color_gradientn(colours =rev(brewer.pal(name = "Spectral",n=11)))
-    p <- p + ggtitle(title)
+    p <- p + ggtitle(title_to_use)
     p <- p + labs(x="",y="",color="intensity")
     return(p)
   })

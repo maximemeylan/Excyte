@@ -4,7 +4,13 @@
 \alias{plot_excyte}
 \title{Master function to call all available plot functions}
 \usage{
-plot_excyte(excyte_obj, cut_top_99th = T, show_perc = T, alpha = 0.5)
+plot_excyte(
+  excyte_obj,
+  cut_top_99th = T,
+  show_perc = T,
+  alpha = 0.5,
+  title = "both"
+)
 }
 \arguments{
 \item{excyte_obj}{list of object obtained from an initial run with the excyte pipeline}

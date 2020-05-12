@@ -9,6 +9,7 @@ plot_umap(
   processed_fcs_df,
   channels = c("channels_used", "all", "with_desc")[1],
   cut_top_99th = T,
+  title = c("both", "marker", "channel")[1],
   alpha = 0.5
 )
 }
@@ -19,7 +20,7 @@ plot_umap(
 
 \item{channels}{vector of channels to select. Can be "all" to select all channels, "with_desc" to select channels with a marker description or a vector a channels}
 
-\item{cut_top_99th}{boolean value indicating if the top 1 percent should be remove to compute scaling}
+\item{cut_top_99th}{boolean value indicating if the top 1 percent should be removed to compute color scaling}
 
 \item{alpha}{numeric indicating the transparency level when plotting the umap}
 }
