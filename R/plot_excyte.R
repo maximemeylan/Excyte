@@ -176,7 +176,8 @@ plot_umap <- function(umap_2D,processed_fcs_df,
     }
     if(title=="both"){
       title_to_use <- paste(channel,all_channels[which(all_channels[,1]==channel),2],sep=" / ")
-    }else{
+    }
+    if(title=='channel'){
       title_to_use <-channel
     }
     p <- ggplot(umap_2D,aes(x=X,y=Y))
