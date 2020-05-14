@@ -130,15 +130,16 @@ plot_ridge <- function(phenograph_obj,
   #plot channels for each cluster
   if(type == "clusters"){
     all_plots <- lapply(cluster_to_use,function(x){
-      temp_df <- data.frame(t(processed_fcs[processed_fcs$Phenograph_membership == x,c(channels)]))
+      temp_df <- data.frame(t(processed_fcs[processed_fcs$Phenograph_membership == x,channels]))
       temp_df$chan <- rownames(temp_df)
       melted_df<- melt_df(temp_df,var_to_group ="chan")
+      melted_df$groups <- factor(melted_df$groups,levels=channels)
       p <- ggplot(melted_df, aes(x = value, y = groups,fill = groups))
       p <- p + geom_density_ridges(scale = 4, rel_min_height = 0.045,alpha = 0.85)
       p <- p + theme_ridges()
       p <- p + theme(axis.title.y = element_blank(),axis.title.x = element_blank())
       p <- p + labs(title=x)
-      #p <- p + scale_y_discrete(labels=markernames)
+      p <- p + scale_y_discrete(labels=channels)
       p <- p + scale_fill_discrete(guide=FALSE)
       p <- p + scale_x_continuous(limits = limits)
       return(p)
