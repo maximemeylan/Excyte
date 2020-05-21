@@ -5,7 +5,7 @@
 #' @param show_perc boolean indicating if percentages for each cluster should be displayed
 #' @param alpha numeric indicating the transparency level when plotting the umap
 #' @export
-plot_excyte <- function(excyte_obj,cut_top_99th=T,show_perc=T,alpha=0.5,title='both'){
+plot_excyte <- function(excyte_obj,cut_top_99th=T,show_perc=T,alpha=0.5,threshold="median",title='both'){
   #generate umaps for selected channels and save plots in a list
   umap_channels <- plot_umap(umap_2D = excyte_obj$umap_obj$umap_2D,
                              processed_fcs_df = excyte_obj$processed_fcs_obj,
@@ -26,6 +26,7 @@ plot_excyte <- function(excyte_obj,cut_top_99th=T,show_perc=T,alpha=0.5,title='b
   #display cell repartition according to phenograph memberships for each channels and save plots in a list
   ridges <- plot_ridge(excyte_obj$phenograph_obj,
                        type = "channels",
+                       threshold = threshold,
                        downsampling = 1000
                        )
   return(list("umap_channels"=umap_channels,"umap_phenograph"=umap_phenograph,"heatmap"=heatmap,"ridges"=ridges))
@@ -69,6 +70,7 @@ plot_phenograph <- function(umap_2D,phenograph_obj,alpha=0.5){
 #' @import ggplot2
 #' @import ggridges
 #' @param phenograph_obj list containing result of phenograph clustering and processed fcs
+#' @param threshold character, draw the median, tertile or quartile
 #' @param channels vector of channels to use, default uses all channels
 #' @param cluster_to_use vector of cluster to use, default uses all clusters
 #' @param type character, plot selected channels for each clusters (type="clusters") or selected clusters for each channel (type="channels")
@@ -79,7 +81,7 @@ plot_ridge <- function(phenograph_obj,
                        channels="all",
                        cluster_to_use="all",
                        type=c("channels","clusters")[1],
-                       show_median=T,
+                       threshold=c("median","tertile","quartile",NULL)[4],
                        downsampling=NULL,
                        limits=c(-0.2,4.3),
                        channel_names=c("channel_only","marker_only","both")[3]){
@@ -117,8 +119,16 @@ plot_ridge <- function(phenograph_obj,
       p <- ggplot(melted_df, aes(x = value, y = groups,fill = groups))
       p <- p + geom_density_ridges(scale = 4, rel_min_height = 0.045,alpha = 0.85)
       p <- p + theme_ridges()
-      if(show_median){
-        p <- p + geom_vline(xintercept=median(processed_fcs[,x],na.rm=T), linetype="dashed", color = "red")
+      if(!is.null(threshold)){
+        if(threshold == "median"){
+          p <- p + geom_vline(xintercept=median(processed_fcs[,x],na.rm=T), linetype="dashed", color = "darkgreen")
+        }
+        if(threshold == "tertile"){
+          p <- p + geom_vline(xintercept=quantile(processed_fcs[,x],probs = c(0.33,0.66)), linetype="dashed", color = "darkgreen")
+        }
+        if(threshold == "quartile"){
+          p <- p + geom_vline(xintercept=quantile(processed_fcs[,x],c(0.25,0.5,0.75)), linetype="dashed",color = "darkgreen")
+        }
       }
       p <- p + theme(axis.title.y = element_blank(),axis.title.x = element_blank())
       p <- p + scale_fill_discrete(guide=FALSE)

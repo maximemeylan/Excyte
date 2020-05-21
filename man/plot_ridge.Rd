@@ -9,7 +9,7 @@ plot_ridge(
   channels = "all",
   cluster_to_use = "all",
   type = c("channels", "clusters")[1],
-  show_median = T,
+  threshold = c("median", "tertile", "quartile", NULL)[4],
   downsampling = NULL,
   limits = c(-0.2, 4.3),
   channel_names = c("channel_only", "marker_only", "both")[3]
@@ -23,6 +23,8 @@ plot_ridge(
 \item{cluster_to_use}{vector of cluster to use, default uses all clusters}
 
 \item{type}{character, plot selected channels for each clusters (type="clusters") or selected clusters for each channel (type="channels")}
+
+\item{threshold}{character, draw the median, tertile or quartile}
 
 \item{downsampling}{numeric indicating the number of events to plot}
 

@@ -1,7 +1,7 @@
   Kruskal-Wallis rank sum test
 
 data: x and group
-Kruskal-Wallis chi-squared = 26.2362, df = 2, p-value = 0
+Kruskal-Wallis chi-squared = 16.6191, df = 2, p-value = 0
 
 
                            Comparison of x by group                            
@@ -9,11 +9,11 @@ Kruskal-Wallis chi-squared = 26.2362, df = 2, p-value = 0
 Col Mean-|
 Row Mean |    healthy      local
 ---------+----------------------
-   local |   0.732749
-         |     0.2319
+   local |  -0.057416
+         |     0.4771
          |
-    meta |  -2.369693  -5.043442
-         |    0.0134*    0.0000*
+    meta |  -2.429984  -3.852517
+         |    0.0113*    0.0002*
 
 alpha = 0.05
 Reject Ho if p <= alpha/2

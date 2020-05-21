@@ -21,8 +21,11 @@ run_excyte <- function(fcs_dir,
   phenograph_obj <- compute_phenograph(processed_fcs_obj,channels = channels,k = k)
   #compute umap coordinates for each event
   umap_obj <- compute_umap(processed_fcs_obj,channels = channels,k=k,downsampling_umap=downsampling_umap,method=method)
-  return(list("processed_fcs_obj"=processed_fcs_obj,"phenograph_obj"=phenograph_obj,"umap_obj"=umap_obj))
+  #provide annoatation for each phenograph membership
+  annotation <- annotate_clusters(phenograph_obj = phenograph_obj,channels=channels)
+  return(list("processed_fcs_obj"=processed_fcs_obj,"phenograph_obj"=phenograph_obj,"umap_obj"=umap_obj,"annotation" =annotation))
 }
+
 
 #' Rerun the excyte pipeline on selected phenograph clusters
 #' @param excyte_obj list of object obtained from an initial run with the excyte pipeline
@@ -59,7 +62,9 @@ rerun_excyte <- function(excyte_obj,
   phenograph_obj <- compute_phenograph(processed_fcs_obj = excyte_obj$processed_fcs_obj,channels = channels,k = k)
   #compute umap for selected events
   umap_obj <- compute_umap(excyte_obj$processed_fcs_obj,channels = channels,k=k,downsampling_umap =downsampling_umap,method=method)
-  return(list("processed_fcs_obj"= excyte_obj$processed_fcs_obj,"phenograph_obj"=phenograph_obj,"umap_obj"=umap_obj))
+  #provide annoatation for each phenograph membership
+  annotation <- annotate_clusters(phenograph_obj = phenograph_obj,channels=channels)
+  return(list("processed_fcs_obj"= excyte_obj$processed_fcs_obj,"phenograph_obj"=phenograph_obj,"umap_obj"=umap_obj,"annotation" =annotation))
 }
 #' Compute phenograph membership for each event
 #' @param processed_fcs_obj list containing a datraframe of processed intensities for each event and informations of channel used
@@ -107,3 +112,86 @@ compute_umap <- function(processed_fcs_obj,channels=c("all","with_desc")[1],k=30
   return(list("umap_obj"=umap_obj,"umap_2D"=umap_obj_2D,"channels_used"=channels_to_use))
 }
 
+#' Provide annotations for each cluster, based on intensity distribution of all events
+#' @param phenograph_obj list containing result of phenograph clustering and processed fcs
+#' @param thresholds character defining if threshold should be caracterized as the median, tertiles or quartiles
+#' @param positivity_threshold numeric value between 0 and 1 defining the percentage of cells needed to call positivity to a threshold
+#' @param channels vector of channels to use, default uses all channels
+#' @param cluster_to_use vector of cluster to use, default uses all clusters
+#' @param channel_names character, edit channels names accordingly
+#' @export
+annotate_clusters <- function(phenograph_obj,
+                              channels="all",
+                              cluster_to_use="all",
+                              thresholds=c("median","tertile","quartile")[2],
+                              positivity_threshold = 0.5,
+                              channel_names=c("channel_only","marker_only","both")[3]
+                              ){
+  ## clean channels names and prepare data
+  if(all(cluster_to_use!="all")){
+    processed_fcs <- phenograph_obj$processed_fcs[phenograph_obj$processed_fcs$Phenograph_membership %in%  cluster_to_use ,]
+  }else{
+    processed_fcs <- phenograph_obj$processed_fcs
+    cluster_to_use <- as.character(unique(processed_fcs$Phenograph_membership))
+    cluster_to_use <- cluster_to_use[order(nchar(cluster_to_use), cluster_to_use)]
+  }
+  all_channels <- attr(processed_fcs,"all_channels")
+  if(all(channels=="all")){
+    channels <- intersect(colnames(processed_fcs),all_channels[,"name"])
+  }
+  if(channel_names == "both" | channel_names =="marker_only"){
+    if(channel_names == "both"){
+      edited_channels_name <- paste( channels,all_channels[match(channels,all_channels$name),"desc"],sep=" / ")
+      edited_channels_name <- gsub(x = edited_channels_name,pattern = " / NA",replacement = "")
+    }else if(channel_names =="marker_only"){
+      edited_channels_name <- all_channels[match(channels,all_channels$name),"desc"]
+      na_str <- is.na(edited_channels_name)
+      edited_channels_name[na_str] <- channels[na_str]
+    }
+    order <- match(channels,colnames(processed_fcs))
+    colnames(processed_fcs)[order] <- edited_channels_name
+    channels <- edited_channels_name
+  }
+  #compute threshold values for each channels
+  threshold_values <- apply(processed_fcs[,channels],2,function(x){
+    if(thresholds=="median"){
+      return(median(x,na.rm=T))
+    }
+    if(thresholds=="tertile"){
+      return(quantile(x,probs = c(0.33,0.66),na.rm = T))
+    }
+    if(thresholds=="quartile"){
+      return(quantile(x,probs = c(0.25,0.5,0.75),na.rm = T))
+    }
+  })
+  annot <- sapply(as.character(channels), function(chan){
+    positive_cell_per_chan <- sapply(threshold_values[,chan],function(thresh){
+      processed_fcs[,chan] > thresh
+      })
+    positive_cluster_per_chan <- sapply(cluster_to_use,function(cluster){
+      ids <- processed_fcs$Phenograph_membership==cluster
+      #compute percentage of positive cells for each thresold
+      perc_sup_cell_per_chan <- colSums(positive_cell_per_chan[ids,]) / sum(ids)
+      positivity_cell_per_chan <- as.logical(perc_sup_cell_per_chan > positivity_threshold)
+      if(thresholds == "median"){
+        if(identical(positivity_cell_per_chan,F)) return("low")
+        if(identical(positivity_cell_per_chan,T)) return("high")
+      }
+      if(thresholds == "tertile"){
+        if(identical(positivity_cell_per_chan,c(F,F))) return("low")
+        if(identical(positivity_cell_per_chan, c(T,F))) return("medium")
+        if(identical(positivity_cell_per_chan,c(T,T))) return("high")
+      }
+      if(thresholds == "quartile"){
+        if(identical(positivity_cell_per_chan,c(F,F,F))) return("very_low")
+        if(identical(positivity_cell_per_chan,c(T,F,F))) return("low")
+        if(identical(positivity_cell_per_chan,c(T,T,F))) return("high")
+        if(identical(positivity_cell_per_chan,c(T,T,T))) return("very_high")
+      }
+    })
+  })
+  annot <- data.frame(annot,check.names = F,check.rows = F)
+  #aggregated vector to facilitate sorting
+  annot$phenotype <- apply(annot,1,function(x) paste0(rbind(colnames(annot),x),collapse = "_"))
+  return(annot)
+}
