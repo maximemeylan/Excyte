@@ -81,7 +81,7 @@ plot_ridge <- function(phenograph_obj,
                        channels="all",
                        cluster_to_use="all",
                        type=c("channels","clusters")[1],
-                       threshold=c("median","tertile","quartile",NULL)[4],
+                       threshold=c("median","tertile","quartile",NA)[4],
                        downsampling=NULL,
                        limits=c(-0.2,4.3),
                        channel_names=c("channel_only","marker_only","both")[3]){
@@ -119,7 +119,7 @@ plot_ridge <- function(phenograph_obj,
       p <- ggplot(melted_df, aes(x = value, y = groups,fill = groups))
       p <- p + geom_density_ridges(scale = 4, rel_min_height = 0.045,alpha = 0.85)
       p <- p + theme_ridges()
-      if(!is.null(threshold)){
+      if(!is.na(threshold)){
         if(threshold == "median"){
           p <- p + geom_vline(xintercept=median(processed_fcs[,x],na.rm=T), linetype="dashed", color = "darkgreen")
         }

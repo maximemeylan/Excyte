@@ -8,7 +8,7 @@ annotate_clusters(
   phenograph_obj,
   channels = "all",
   cluster_to_use = "all",
-  thresholds = c("median", "tertile", "quartile")[2],
+  threshold = c("median", "tertile", "quartile")[2],
   positivity_threshold = 0.5,
   channel_names = c("channel_only", "marker_only", "both")[3]
 )
@@ -20,7 +20,7 @@ annotate_clusters(
 
 \item{cluster_to_use}{vector of cluster to use, default uses all clusters}
 
-\item{thresholds}{character defining if threshold should be caracterized as the median, tertiles or quartiles}
+\item{threshold}{character defining if threshold should be caracterized as the median, tertiles or quartiles}
 
 \item{positivity_threshold}{numeric value between 0 and 1 defining the percentage of cells needed to call positivity to a threshold}
 

@@ -114,7 +114,7 @@ compute_umap <- function(processed_fcs_obj,channels=c("all","with_desc")[1],k=30
 
 #' Provide annotations for each cluster, based on intensity distribution of all events
 #' @param phenograph_obj list containing result of phenograph clustering and processed fcs
-#' @param thresholds character defining if threshold should be caracterized as the median, tertiles or quartiles
+#' @param threshold character defining if threshold should be caracterized as the median, tertiles or quartiles
 #' @param positivity_threshold numeric value between 0 and 1 defining the percentage of cells needed to call positivity to a threshold
 #' @param channels vector of channels to use, default uses all channels
 #' @param cluster_to_use vector of cluster to use, default uses all clusters
@@ -123,7 +123,7 @@ compute_umap <- function(processed_fcs_obj,channels=c("all","with_desc")[1],k=30
 annotate_clusters <- function(phenograph_obj,
                               channels="all",
                               cluster_to_use="all",
-                              thresholds=c("median","tertile","quartile")[2],
+                              threshold=c("median","tertile","quartile")[2],
                               positivity_threshold = 0.5,
                               channel_names=c("channel_only","marker_only","both")[3]
                               ){
@@ -154,16 +154,17 @@ annotate_clusters <- function(phenograph_obj,
   }
   #compute threshold values for each channels
   threshold_values <- apply(processed_fcs[,channels],2,function(x){
-    if(thresholds=="median"){
+    if(threshold=="median"){
       return(median(x,na.rm=T))
     }
-    if(thresholds=="tertile"){
+    if(threshold=="tertile"){
       return(quantile(x,probs = c(0.33,0.66),na.rm = T))
     }
-    if(thresholds=="quartile"){
+    if(threshold=="quartile"){
       return(quantile(x,probs = c(0.25,0.5,0.75),na.rm = T))
     }
   })
+  if(threshold == "median") threshold_values <- t(threshold_values)
   annot <- sapply(as.character(channels), function(chan){
     positive_cell_per_chan <- sapply(threshold_values[,chan],function(thresh){
       processed_fcs[,chan] > thresh
@@ -171,18 +172,17 @@ annotate_clusters <- function(phenograph_obj,
     positive_cluster_per_chan <- sapply(cluster_to_use,function(cluster){
       ids <- processed_fcs$Phenograph_membership==cluster
       #compute percentage of positive cells for each thresold
-      perc_sup_cell_per_chan <- colSums(positive_cell_per_chan[ids,]) / sum(ids)
+      perc_sup_cell_per_chan <- colSums(positive_cell_per_chan[ids,,drop=F]) / sum(ids)
       positivity_cell_per_chan <- as.logical(perc_sup_cell_per_chan > positivity_threshold)
-      if(thresholds == "median"){
-        if(identical(positivity_cell_per_chan,F)) return("low")
-        if(identical(positivity_cell_per_chan,T)) return("high")
+      if(threshold == "median"){
+        ifelse(positivity_cell_per_chan,return("high"),return("low"))
       }
-      if(thresholds == "tertile"){
+      if(threshold == "tertile"){
         if(identical(positivity_cell_per_chan,c(F,F))) return("low")
         if(identical(positivity_cell_per_chan, c(T,F))) return("medium")
         if(identical(positivity_cell_per_chan,c(T,T))) return("high")
       }
-      if(thresholds == "quartile"){
+      if(threshold == "quartile"){
         if(identical(positivity_cell_per_chan,c(F,F,F))) return("very_low")
         if(identical(positivity_cell_per_chan,c(T,F,F))) return("low")
         if(identical(positivity_cell_per_chan,c(T,T,F))) return("high")

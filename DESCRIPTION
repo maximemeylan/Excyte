@@ -24,7 +24,7 @@ Imports:
         ggridges,
         pheatmap,
         gridExtra
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Suggests: 
     knitr,
     rmarkdown
