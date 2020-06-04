@@ -81,7 +81,7 @@ plot_ridge <- function(phenograph_obj,
                        channels="all",
                        cluster_to_use="all",
                        type=c("channels","clusters")[1],
-                       threshold=c("median","tertile","quartile",NA)[4],
+                       threshold=c("median","tertile","quartile",NA)[1],
                        downsampling=NULL,
                        limits=c(-0.2,4.3),
                        channel_names=c("channel_only","marker_only","both")[3]){
@@ -112,28 +112,46 @@ plot_ridge <- function(phenograph_obj,
     colnames(processed_fcs)[order] <- edited_channels_name
     channels <- edited_channels_name
   }
+  #compute threshold values for each channels
+  threshold_values <- apply(processed_fcs[,channels],2,function(x){
+    if(threshold=="median"){
+      return(median(x,na.rm=T))
+    }
+    if(threshold=="tertile"){
+      return(quantile(x,probs = c(0.33,0.66),na.rm = T))
+    }
+    if(threshold=="quartile"){
+      return(quantile(x,probs = c(0.25,0.5,0.75),na.rm = T))
+    }
+  })
+  #if(threshold == "median") threshold_values <- t(threshold_values)
   #plot clusters for each channels
+  #nasty nested ifelses but works...
   if(type == "channels"){
-    all_plots <- lapply(channels,function(x){
-      melted_df<- melt_df(processed_fcs[,c(x,"Phenograph_membership")],var_to_group ="Phenograph_membership")
-      p <- ggplot(melted_df, aes(x = value, y = groups,fill = groups))
-      p <- p + geom_density_ridges(scale = 4, rel_min_height = 0.045,alpha = 0.85)
-      p <- p + theme_ridges()
+    all_plots <- lapply(channels,function(chan){
+      melted_df<- melt_df(processed_fcs[,c(chan,"Phenograph_membership")],var_to_group ="Phenograph_membership")
       if(!is.na(threshold)){
         if(threshold == "median"){
-          p <- p + geom_vline(xintercept=median(processed_fcs[,x],na.rm=T), linetype="dashed", color = "darkgreen")
+          p <- ggplot(melted_df, aes(x = value, y = groups, fill = ifelse(..x..> threshold_values[chan], "higher than median", "lower then median")))
         }
         if(threshold == "tertile"){
-          p <- p + geom_vline(xintercept=quantile(processed_fcs[,x],probs = c(0.33,0.66)), linetype="dashed", color = "darkgreen")
+          p <- ggplot(melted_df, aes(x = value, y = groups, fill = factor(ifelse(..x.. > threshold_values[2,chan],"third tertile",
+                                                                            ifelse(..x.. > threshold_values[1,chan],"second tertile","first tertile")),
+                                                                          levels=c("third tertile","second tertile","first tertile"))))
         }
         if(threshold == "quartile"){
-          p <- p + geom_vline(xintercept=quantile(processed_fcs[,x],c(0.25,0.5,0.75)), linetype="dashed",color = "darkgreen")
-        }
+          p <- ggplot(melted_df, aes(x = value, y = groups, fill = factor(ifelse(..x.. > threshold_values[3,chan],"fourth quartile",
+                                                                                 ifelse(..x.. > threshold_values[2,chan],"third quartile",
+                                                                                        ifelse(..x.. > threshold_values[1,chan],"second quartile","first quartile"))),
+                                                                          levels=c("fourth quartile","third quartile","second quartile","first quartile"))))          }
       }
+      p <- p + stat_density_ridges(geom = "density_ridges_gradient", scale = 3, rel_min_height = 0.045)
+      p <- p + theme_ridges()
+      p <- p + scale_fill_viridis_d(name=paste0(threshold," threshold"),direction = -1,option = "C",alpha = 0.7)
       p <- p + theme(axis.title.y = element_blank(),axis.title.x = element_blank())
-      p <- p + scale_fill_discrete(guide=FALSE)
+      p <- p + labs(title=chan)
       p <- p + scale_x_continuous(limits = limits)
-      p <- p + labs(title=x)
+      #p <- p + theme(legend.position = "none")
       return(p)
     })
   }
@@ -144,14 +162,29 @@ plot_ridge <- function(phenograph_obj,
       temp_df$chan <- rownames(temp_df)
       melted_df<- melt_df(temp_df,var_to_group ="chan")
       melted_df$groups <- factor(melted_df$groups,levels=channels)
-      p <- ggplot(melted_df, aes(x = value, y = groups,fill = groups))
-      p <- p + geom_density_ridges(scale = 4, rel_min_height = 0.045,alpha = 0.85)
+      if(!is.na(threshold)){
+        if(threshold == "median"){
+          p <- ggplot(melted_df, aes(x = value, y = groups, fill = ifelse(..x.. > threshold_values[..y..],"higher than median","lower than median")))
+        }
+        if(threshold == "tertile"){
+          p <- ggplot(melted_df, aes(x = value, y = groups, fill = factor(ifelse(..x.. > threshold_values[2,..y..],"third tertile",
+                                                                          ifelse(..x.. < threshold_values[1,..y..],"second tertile","first tertile")),
+                                                                          levels=c("third tertile","second tertile","first tertile"))))
+        }
+        if(threshold == "quartile"){
+          p <- ggplot(melted_df, aes(x = value, y = groups, fill = factor(ifelse(..x.. > threshold_values[3,..y..],"fourth quartile",
+                                                                          ifelse(..x.. > threshold_values[2,..y..],"third quartile",
+                                                                                 ifelse(..x.. > threshold_values[1,..y..],"second quartile","first quartile"))),
+                                                                          levels=c("fourth quartile","third quartile","second quartile","first quartile"))))
+        }
+      }
+      p <- p + stat_density_ridges(geom = "density_ridges_gradient", scale = 3, rel_min_height = 0.045,alpha = 0.60)
       p <- p + theme_ridges()
+      p <- p + scale_fill_viridis_d(name=paste0(threshold," threshold"),direction = -1,option = "D")
       p <- p + theme(axis.title.y = element_blank(),axis.title.x = element_blank())
       p <- p + labs(title=x)
-      p <- p + scale_y_discrete(labels=channels)
-      p <- p + scale_fill_discrete(guide=FALSE)
       p <- p + scale_x_continuous(limits = limits)
+      p <- p + theme(legend.position = "none")
       return(p)
     })
   }
@@ -168,7 +201,8 @@ plot_ridge <- function(phenograph_obj,
 #' @importFrom stats quantile
 #' @importFrom RColorBrewer brewer.pal
 #' @export
-plot_umap <- function(umap_2D,processed_fcs_df,
+plot_umap <- function(umap_2D,
+                      processed_fcs_df,
                       channels=c("channels_used","all","with_desc")[1],
                       cut_top_99th=T,
                       title=c("both","marker","channel")[1],
@@ -184,9 +218,13 @@ plot_umap <- function(umap_2D,processed_fcs_df,
   all_plot <- lapply(channels_to_use, function(channel){
     if(title=="marker"){
       title_to_use <- all_channels[which(all_channels[,1]==channel),2]
+      if(is.na(title_to_use)){
+        title_to_use <-channel
+      }
     }
     if(title=="both"){
       title_to_use <- paste(channel,all_channels[which(all_channels[,1]==channel),2],sep=" / ")
+      title_to_use <- gsub(pattern = "/ NA",replacement = "",x = title_to_use)
     }
     if(title=='channel'){
       title_to_use <-channel

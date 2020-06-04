@@ -114,7 +114,7 @@ compute_umap <- function(processed_fcs_obj,channels=c("all","with_desc")[1],k=30
 
 #' Provide annotations for each cluster, based on intensity distribution of all events
 #' @param phenograph_obj list containing result of phenograph clustering and processed fcs
-#' @param threshold character defining if threshold should be caracterized as the median, tertiles or quartiles
+#' @param threshold character defining if threshold should be caracterized as the median, tertile or quartile
 #' @param positivity_threshold numeric value between 0 and 1 defining the percentage of cells needed to call positivity to a threshold
 #' @param channels vector of channels to use, default uses all channels
 #' @param cluster_to_use vector of cluster to use, default uses all clusters
@@ -123,7 +123,7 @@ compute_umap <- function(processed_fcs_obj,channels=c("all","with_desc")[1],k=30
 annotate_clusters <- function(phenograph_obj,
                               channels="all",
                               cluster_to_use="all",
-                              threshold=c("median","tertile","quartile")[2],
+                              threshold=c("median","tertile","quartile")[1],
                               positivity_threshold = 0.5,
                               channel_names=c("channel_only","marker_only","both")[3]
                               ){
