@@ -98,7 +98,7 @@ excyte_plots$umap_phenograph
 
 ### Distribution of event intensities according to cluster membership
 ```{r , fig.width = 8,fig.height=7,dpi=100} 
-grid.arrange(grobs=excyte_plots$ridges[c(9,3,4,1,2,5)],ncol=2)
+grid.arrange(grobs=excyte_plots$ridges_clusters[c(9,3,4,1,2,5)],ncol=2)
 ```
 
 ## Re-run excyte on selected clusters 
@@ -112,7 +112,7 @@ excyte_object$processed_fcs_obj$all_channels
 markers <- excyte_object$processed_fcs_obj$all_channels[c(c(11,7,12,13,8,14)),1]
 
 rerun_object <- rerun_excyte(excyte_obj = excyte_object,
-                             clusters_id = c("c7","c15","c9","c13","c14","c5","c3"), 
+                             clusters_id = c("C_19","C_12","C_18","C_13","C_05","C_08"), 
                              channels = markers,)
 rerun_plots <- plot_excyte(excyte_obj = rerun_object,alpha = 1)
 grid.arrange(grobs=rerun_plots$umap_channels,ncol=2)

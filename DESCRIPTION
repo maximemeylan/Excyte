@@ -13,7 +13,7 @@ Encoding: UTF-8
 LazyData: true
 biocViews: flowCore
 Depends: R (>= 3.4.0), ggplot2
-Remotes: JinmiaoChenLab/Rphenograph
+Remotes: i-cyto/Rphenograph
 Imports:
         flowCore,
         RColorBrewer,
@@ -24,7 +24,7 @@ Imports:
         ggridges,
         pheatmap,
         gridExtra
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Suggests: 
     knitr,
     rmarkdown

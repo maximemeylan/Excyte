@@ -5,7 +5,7 @@
 #' @param show_perc boolean indicating if percentages for each cluster should be displayed
 #' @param alpha numeric indicating the transparency level when plotting the umap
 #' @export
-plot_excyte <- function(excyte_obj,cut_top_99th=T,show_perc=T,alpha=0.5,threshold="median",title='both'){
+plot_excyte <- function(excyte_obj,cut_top_99th=T,show_perc=T,alpha=0.5,threshold="tertile",title='both'){
   #generate umaps for selected channels and save plots in a list
   umap_channels <- plot_umap(umap_2D = excyte_obj$umap_obj$umap_2D,
                              processed_fcs_df = excyte_obj$processed_fcs_obj,
@@ -23,13 +23,21 @@ plot_excyte <- function(excyte_obj,cut_top_99th=T,show_perc=T,alpha=0.5,threshol
                                           angle=45,
                                           cut_top_99th = T,
                                           show_perc = show_perc)
-  #display cell repartition according to phenograph memberships for each channels and save plots in a list
-  ridges <- plot_ridge(excyte_obj$phenograph_obj,
-                       type = "channels",
+  #display cell repartition according to phenograph memberships for each channels and save plots in a list (clusters)
+  ridges_clusters <- plot_ridge(excyte_obj$phenograph_obj,
+                       type = "clusters",
                        threshold = threshold,
+                       channel_names = title,
                        downsampling = 1000
                        )
-  return(list("umap_channels"=umap_channels,"umap_phenograph"=umap_phenograph,"heatmap"=heatmap,"ridges"=ridges))
+  #display cell repartition according to phenograph memberships for each channels and save plots in a list (channels)
+  ridges_channels <- plot_ridge(excyte_obj$phenograph_obj,
+                                type = "channels",
+                                threshold = threshold,
+                                channel_names = title,
+                                downsampling = 1000
+  )
+  return(list("umap_channels"=umap_channels,"umap_phenograph"=umap_phenograph,"heatmap"=heatmap,"ridges_clusters"=ridges_clusters,"ridges_channels"=ridges_channels))
 }
 
 #' Plot function that display phenograph memberships for each event on a umap representation
@@ -84,7 +92,7 @@ plot_ridge <- function(phenograph_obj,
                        threshold=c("median","tertile","quartile",NA)[1],
                        downsampling=NULL,
                        limits=c(-0.2,4.3),
-                       channel_names=c("channel_only","marker_only","both")[3]){
+                       channel_names=c("channel","marker","both")[3]){
   if(all(cluster_to_use!="all")){
     processed_fcs <- phenograph_obj$processed_fcs[phenograph_obj$processed_fcs$Phenograph_membership %in%  cluster_to_use ,]
   }else{
@@ -99,11 +107,11 @@ plot_ridge <- function(phenograph_obj,
   if(!is.null(downsampling)){
     processed_fcs <- downsample(processed_fcs,downsampling)
   }
-  if(channel_names == "both" | channel_names =="marker_only"){
+  if(channel_names == "both" | channel_names =="marker"){
     if(channel_names == "both"){
       edited_channels_name <- paste( channels,all_channels[match(channels,all_channels$name),"desc"],sep=" / ")
       edited_channels_name <- gsub(x = edited_channels_name,pattern = " / NA",replacement = "")
-    }else if(channel_names =="marker_only"){
+    }else if(channel_names =="marker"){
       edited_channels_name <- all_channels[match(channels,all_channels$name),"desc"]
       na_str <- is.na(edited_channels_name)
       edited_channels_name[na_str] <- channels[na_str]
@@ -147,7 +155,7 @@ plot_ridge <- function(phenograph_obj,
       }
       p <- p + stat_density_ridges(geom = "density_ridges_gradient", scale = 3, rel_min_height = 0.045)
       p <- p + theme_ridges()
-      p <- p + scale_fill_viridis_d(name=paste0(threshold," threshold"),direction = -1,option = "C",alpha = 0.7)
+      p <- p + scale_fill_viridis_d(name=paste0(threshold," threshold"),direction = -1,option = "C",alpha = 0.6)
       p <- p + theme(axis.title.y = element_blank(),axis.title.x = element_blank())
       p <- p + labs(title=chan)
       p <- p + scale_x_continuous(limits = limits)
@@ -168,7 +176,7 @@ plot_ridge <- function(phenograph_obj,
         }
         if(threshold == "tertile"){
           p <- ggplot(melted_df, aes(x = value, y = groups, fill = factor(ifelse(..x.. > threshold_values[2,..y..],"third tertile",
-                                                                          ifelse(..x.. < threshold_values[1,..y..],"second tertile","first tertile")),
+                                                                          ifelse(..x.. > threshold_values[1,..y..],"second tertile","first tertile")),
                                                                           levels=c("third tertile","second tertile","first tertile"))))
         }
         if(threshold == "quartile"){
@@ -180,7 +188,7 @@ plot_ridge <- function(phenograph_obj,
       }
       p <- p + stat_density_ridges(geom = "density_ridges_gradient", scale = 3, rel_min_height = 0.045,alpha = 0.60)
       p <- p + theme_ridges()
-      p <- p + scale_fill_viridis_d(name=paste0(threshold," threshold"),direction = -1,option = "D")
+      p <- p + scale_fill_viridis_d(name=paste0(threshold," threshold"),direction = -1,option = "C",alpha = 0.6)
       p <- p + theme(axis.title.y = element_blank(),axis.title.x = element_blank())
       p <- p + labs(title=x)
       p <- p + scale_x_continuous(limits = limits)

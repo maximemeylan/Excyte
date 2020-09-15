@@ -9,7 +9,7 @@ plot_excyte(
   cut_top_99th = T,
   show_perc = T,
   alpha = 0.5,
-  threshold = "median",
+  threshold = "tertile",
   title = "both"
 )
 }

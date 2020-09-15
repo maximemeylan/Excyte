@@ -12,7 +12,7 @@ plot_ridge(
   threshold = c("median", "tertile", "quartile", NA)[1],
   downsampling = NULL,
   limits = c(-0.2, 4.3),
-  channel_names = c("channel_only", "marker_only", "both")[3]
+  channel_names = c("channel", "marker", "both")[3]
 )
 }
 \arguments{

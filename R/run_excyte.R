@@ -105,7 +105,7 @@ compute_umap <- function(processed_fcs_obj,channels=c("all","with_desc")[1],k=30
     processed_fcs <- downsample(processed_fcs,downsampling_umap)
   }
   channels_to_use <- setdiff(colnames(processed_fcs),"sample_id")
-  message("\nComputing Umap with channels: \t",paste0(channels_to_use,collapse = "\t"))
+  message("\nComputing Umap with channels: \n",paste0(channels_to_use,collapse = "\t"))
   #compute umap
   umap_obj <- umap(processed_fcs[,channels_to_use],method = method,k=k)
   umap_obj_2D <- setNames(data.frame(umap_obj$layout,check.names = F),c("X","Y"))
@@ -136,9 +136,7 @@ annotate_clusters <- function(phenograph_obj,
     cluster_to_use <- cluster_to_use[order(nchar(cluster_to_use), cluster_to_use)]
   }
   all_channels <- attr(processed_fcs,"all_channels")
-  if(all(channels=="all")){
-    channels <- intersect(colnames(processed_fcs),all_channels[,"name"])
-  }
+  channels <- intersect(colnames(processed_fcs),all_channels[,"name"])
   if(channel_names == "both" | channel_names =="marker_only"){
     if(channel_names == "both"){
       edited_channels_name <- paste( channels,all_channels[match(channels,all_channels$name),"desc"],sep=" / ")
