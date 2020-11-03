@@ -97,7 +97,7 @@ excyte_plots$umap_phenograph
 
 
 ### Distribution of event intensities according to cluster membership
-```{r , fig.width = 8,fig.height=7,dpi=100} 
+```{r , fig.width = 14,fig.height=13,dpi=100} 
 grid.arrange(grobs=excyte_plots$ridges_clusters[c(9,3,4,1,2,5)],ncol=2)
 ```
 

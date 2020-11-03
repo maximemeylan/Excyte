@@ -125,7 +125,7 @@ annotate_clusters <- function(phenograph_obj,
                               cluster_to_use="all",
                               threshold=c("median","tertile","quartile")[1],
                               positivity_threshold = 0.5,
-                              channel_names=c("channel_only","marker_only","both")[3]
+                              channel_names=c("channel","marker","both")[3]
                               ){
   ## clean channels names and prepare data
   if(all(cluster_to_use!="all")){
@@ -137,11 +137,11 @@ annotate_clusters <- function(phenograph_obj,
   }
   all_channels <- attr(processed_fcs,"all_channels")
   channels <- intersect(colnames(processed_fcs),all_channels[,"name"])
-  if(channel_names == "both" | channel_names =="marker_only"){
+  if(channel_names == "both" | channel_names =="marker"){
     if(channel_names == "both"){
       edited_channels_name <- paste( channels,all_channels[match(channels,all_channels$name),"desc"],sep=" / ")
       edited_channels_name <- gsub(x = edited_channels_name,pattern = " / NA",replacement = "")
-    }else if(channel_names =="marker_only"){
+    }else if(channel_names =="marker"){
       edited_channels_name <- all_channels[match(channels,all_channels$name),"desc"]
       na_str <- is.na(edited_channels_name)
       edited_channels_name[na_str] <- channels[na_str]

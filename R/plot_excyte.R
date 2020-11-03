@@ -140,7 +140,7 @@ plot_ridge <- function(phenograph_obj,
       melted_df<- melt_df(processed_fcs[,c(chan,"Phenograph_membership")],var_to_group ="Phenograph_membership")
       if(!is.na(threshold)){
         if(threshold == "median"){
-          p <- ggplot(melted_df, aes(x = value, y = groups, fill = ifelse(..x..> threshold_values[chan], "higher than median", "lower then median")))
+          p <- ggplot(melted_df, aes(x = value, y = groups, fill = ifelse(..x..> threshold_values[chan], "higher than median", "lower than median")))
         }
         if(threshold == "tertile"){
           p <- ggplot(melted_df, aes(x = value, y = groups, fill = factor(ifelse(..x.. > threshold_values[2,chan],"third tertile",
@@ -192,7 +192,7 @@ plot_ridge <- function(phenograph_obj,
       p <- p + theme(axis.title.y = element_blank(),axis.title.x = element_blank())
       p <- p + labs(title=x)
       p <- p + scale_x_continuous(limits = limits)
-      p <- p + theme(legend.position = "none")
+     # p <- p + theme(legend.position = "none")
       return(p)
     })
   }
